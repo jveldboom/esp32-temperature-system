@@ -16,7 +16,15 @@ InfluxDBClient* client = nullptr;
 Point sensor("dht22");
 
 void connectWifi() {
-  Serial.printf("Connecting to WiFi: %s\n", cfgWifiSsid.c_str());
+  Serial.printf("Connecting to WiFi SSID: '%s'\n", cfgWifiSsid.c_str());
+  Serial.printf("SSID length: %d\n", cfgWifiSsid.length());
+  Serial.printf("Password length: %d\n", cfgWifiPass.length());
+
+  // Set WiFi mode to station
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
   WiFi.begin(cfgWifiSsid.c_str(), cfgWifiPass.c_str());
 
   int attempts = 0;
@@ -26,10 +34,13 @@ void connectWifi() {
     attempts++;
   }
 
+  Serial.println();
+
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("\nConnected! IP: %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf("Connected! IP: %s\n", WiFi.localIP().toString().c_str());
   } else {
-    Serial.println("\nFailed to connect to WiFi!");
+    Serial.printf("Failed to connect to WiFi! Status code: %d\n", WiFi.status());
+    Serial.println("Status codes: 0=IDLE, 1=NO_SSID_AVAIL, 3=CONNECTED, 4=CONNECT_FAILED, 6=DISCONNECTED");
   }
 }
 
