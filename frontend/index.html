@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Temperature System - Setup</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    h1 { margin-bottom: 10px; }
+    section { margin: 30px 0; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+    label { display: block; margin: 15px 0 5px; font-weight: 500; }
+    input, select { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #flash-btn { background: #0066cc; color: white; font-weight: bold; }
+    #flash-btn:hover:not(:disabled) { background: #0052a3; }
+    #log { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+    .error { color: #ff4444; }
+    .success { color: #44ff44; }
+  </style>
+</head>
+<body>
+  <h1>ESP32 Temperature System</h1>
+  <p>Configure and flash your temperature sensor</p>
+
+  <section>
+    <h2>Configuration</h2>
+
+    <label for="location">Location</label>
+    <input type="text" id="location" placeholder="e.g. Living Room" required>
+
+    <label for="wifi-ssid">WiFi SSID</label>
+    <input type="text" id="wifi-ssid" placeholder="Your WiFi network name" required>
+
+    <label for="wifi-password">WiFi Password</label>
+    <input type="password" id="wifi-password" placeholder="Your WiFi password" required>
+
+    <label for="influx-url">InfluxDB URL</label>
+    <input type="text" id="influx-url" placeholder="http://192.168.1.100:8086" required>
+
+    <label for="influx-token">InfluxDB Token</label>
+    <input type="text" id="influx-token" placeholder="Your InfluxDB token" required>
+
+    <label for="influx-org">InfluxDB Organization</label>
+    <input type="text" id="influx-org" placeholder="home" required>
+
+    <label for="influx-bucket">InfluxDB Bucket</label>
+    <input type="text" id="influx-bucket" placeholder="sensors" required>
+  </section>
+
+  <section>
+    <h2>Flash Device</h2>
+    <p id="status">Ready to flash</p>
+    <button id="flash-btn">Connect & Flash Firmware</button>
+  </section>
+
+  <section>
+    <h2>Log</h2>
+    <pre id="log"></pre>
+  </section>
+  <script type="module">
+    import { ESPLoader, Transport } from './esptool-js-0.5.6.bundle.js';
+
+    const flashBtn = document.getElementById('flash-btn');
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+
+    // Firmware files to flash (from firmware build directory)
+    const FIRMWARE_FILES = [
+      { path: 'firmware/.pio/build/esp32-c3/bootloader.bin', offset: 0 },
+      { path: 'firmware/.pio/build/esp32-c3/partitions.bin', offset: 32768 },
+      { path: 'firmware/.pio/build/esp32-c3/firmware.bin', offset: 65536 }
+    ];
+
+    const terminal = {
+      clean() { logEl.textContent = ''; },
+      writeLine(data) { log(data); },
+      write(data) { logEl.textContent += data; logEl.scrollTop = logEl.scrollHeight; }
+    };
+
+    function log(msg, type = '') {
+      const prefix = type === 'error' ? '❌ ' : type === 'success' ? '✓ ' : '';
+      logEl.textContent += prefix + msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.className = isError ? 'error' : '';
+    }
+
+    // Check Web Serial support
+    if (!('serial' in navigator)) {
+      setStatus('Web Serial not supported. Use Chrome or Edge.', true);
+      flashBtn.disabled = true;
+      log('ERROR: Web Serial API not supported', 'error');
+    }
+
+    function validateInputs() {
+      const fields = ['location', 'wifi-ssid', 'wifi-password', 'influx-url', 'influx-token', 'influx-org', 'influx-bucket'];
+      const missing = fields.filter(id => !document.getElementById(id).value.trim());
+
+      if (missing.length > 0) {
+        setStatus('Please fill in all fields', true);
+        log('Missing required fields: ' + missing.join(', '), 'error');
+        return false;
+      }
+      return true;
+    }
+
+    function getConfig() {
+      return {
+        location: document.getElementById('location').value.trim(),
+        ssid: document.getElementById('wifi-ssid').value.trim(),
+        password: document.getElementById('wifi-password').value.trim(),
+        influxUrl: document.getElementById('influx-url').value.trim(),
+        influxToken: document.getElementById('influx-token').value.trim(),
+        influxOrg: document.getElementById('influx-org').value.trim(),
+        influxBucket: document.getElementById('influx-bucket').value.trim()
+      };
+    }
+
+    function bufferToBinaryString(buffer) {
+      return String.fromCharCode(...new Uint8Array(buffer));
+    }
+
+    async function sendConfig(port, config) {
+      log('Waiting for device to boot...');
+      await new Promise(r => setTimeout(r, 3000));
+
+      log('Sending configuration...');
+      const writer = port.writable.getWriter();
+
+      const configData = [
+        `LOCATION=${config.location}`,
+        `WIFI_SSID=${config.ssid}`,
+        `WIFI_PASS=${config.password}`,
+        `INFLUX_URL=${config.influxUrl}`,
+        `INFLUX_TOKEN=${config.influxToken}`,
+        `INFLUX_ORG=${config.influxOrg}`,
+        `INFLUX_BUCKET=${config.influxBucket}`,
+        'CONFIG_END'
+      ].join('\n') + '\n';
+
+      await writer.write(new TextEncoder().encode(configData));
+      await writer.releaseLock();
+
+      log('Configuration sent', 'success');
+    }
+
+    flashBtn.addEventListener('click', async () => {
+      if (!validateInputs()) return;
+
+      const config = getConfig();
+      flashBtn.disabled = true;
+      terminal.clean();
+      setStatus('Connecting to device...');
+
+      let serialPort = null;
+      let transport = null;
+
+      try {
+        // Connect to device
+        serialPort = await navigator.serial.requestPort();
+        transport = new Transport(serialPort, true);
+
+        const esploader = new ESPLoader({
+          transport,
+          baudrate: 921600,
+          terminal,
+          debugLogging: false
+        });
+
+        log('Connecting...');
+        await esploader.main();
+        log(`Connected to ${esploader.chip.CHIP_NAME}`, 'success');
+
+        // Load firmware files
+        setStatus('Loading firmware...');
+        const fileArray = [];
+
+        for (const file of FIRMWARE_FILES) {
+          log(`Loading ${file.path}...`);
+          const response = await fetch(file.path);
+          if (!response.ok) throw new Error(`Failed to load ${file.path}`);
+
+          const buffer = await response.arrayBuffer();
+          fileArray.push({
+            data: bufferToBinaryString(buffer),
+            address: file.offset
+          });
+        }
+
+        // Flash firmware
+        setStatus('Flashing firmware...');
+        log('Flashing — do not disconnect!');
+
+        await esploader.writeFlash({
+          fileArray,
+          flashSize: 'keep',
+          flashMode: 'keep',
+          flashFreq: 'keep',
+          eraseAll: false,
+          compress: true,
+          reportProgress(fileIndex, written, total) {
+            const pct = Math.round((written / total) * 100);
+            setStatus(`Flashing... ${pct}%`);
+          }
+        });
+
+        log('Firmware flashed successfully!', 'success');
+
+        // Disconnect transport and reopen for serial config
+        await transport.disconnect();
+        await serialPort.close();
+
+        // Reopen serial port for config
+        await serialPort.open({ baudRate: 115200 });
+
+        // Send configuration
+        setStatus('Sending configuration...');
+        await sendConfig(serialPort, config);
+
+        // Done
+        setStatus('Setup complete!');
+        log('Device configured and ready!', 'success');
+        log('You can disconnect the device now.');
+
+        await serialPort.close();
+
+      } catch (err) {
+        setStatus('Failed - see log', true);
+        log('Error: ' + err.message, 'error');
+      } finally {
+        try {
+          if (transport) await transport.disconnect();
+          if (serialPort) await serialPort.close();
+        } catch (_) {}
+        flashBtn.disabled = false;
+      }
+    });
+
+  </script>
+
+</body>
+</html>
