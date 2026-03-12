@@ -97,7 +97,7 @@ void loop() {
 
   if (isnan(humidity) || isnan(tempC) || isnan(tempF)) {
     Serial.println("ERROR: Failed to read from sensor!");
-    delay(READING_INTERVAL_MS);
+    delay(10000);  // Retry after 10 seconds on failure
     return;
   }
 
