@@ -75,11 +75,11 @@ void setup() {
   );
 
   // Static tags applied to every data point
-  sensor.addTag("mac",        WiFi.macAddress());
-  sensor.addTag("chip_model", ESP.getChipModel());
-  sensor.addTag("version",    FIRMWARE_VERSION);
-  sensor.addTag("location",   cfgLocation.c_str());
-  sensor.addTag("ip",         WiFi.localIP().toString());
+  sensor.addTag("mac",              WiFi.macAddress());
+  sensor.addTag("chip_model",       ESP.getChipModel());
+  sensor.addTag("firmware_version", FIRMWARE_VERSION);
+  sensor.addTag("location",         cfgLocation.c_str());
+  sensor.addTag("ip",               WiFi.localIP().toString());
 
   if (client->validateConnection()) {
     Serial.printf("Connected to InfluxDB: %s\n", client->getServerUrl().c_str());
