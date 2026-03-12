@@ -50,6 +50,11 @@ jobs:
           pio test
         continue-on-error: true  # Don't fail if no tests exist yet
 
+      - name: List build artifacts
+        run: |
+          echo "Checking for build artifacts..."
+          ls -la firmware/.pio/build/esp32-c3/ || echo "Build directory not found"
+
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v5
         with:
