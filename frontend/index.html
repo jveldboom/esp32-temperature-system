@@ -4,39 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP32 Temperature System - Setup</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
-    h1 { margin-bottom: 5px; }
-    p.subtitle { margin: 0 0 20px; color: #666; }
-    section { margin: 20px 0; padding: 20px; background: #f5f5f5; border-radius: 8px; }
-    .config-toggle { margin-bottom: 20px; padding: 15px; background: #e8f4f8; border-radius: 6px; border: 2px solid #0066cc; }
-    .config-toggle label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; }
-    .config-toggle input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
-    .config-fields { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .config-fields.hidden { display: none; }
-    .full-width { grid-column: 1 / -1; }
-    label.field-label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; }
-    input, select { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { padding: 12px 24px; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; margin: 5px 5px 5px 0; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #flash-btn { background: #0066cc; color: white; font-weight: bold; width: 100%; }
-    #flash-btn:hover:not(:disabled) { background: #0052a3; }
-    #status { margin: 10px 0; font-weight: 500; }
-    #log { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 12px; white-space: pre-wrap; }
-    .error { color: #ff4444; }
-    .success { color: #44ff44; }
-  </style>
+  <link rel="stylesheet" href="common.css">
 </head>
-<body>
+<body class="light">
   <h1>ESP32 Temperature System</h1>
   <p class="subtitle">Flash firmware and configure your temperature sensor</p>
+
+  <nav>
+    <a href="index.html" class="active">Flash Firmware</a>
+    <a href="monitor.html">Serial Monitor</a>
+  </nav>
 
   <section>
     <div class="config-toggle">
       <label>
         <input type="checkbox" id="configure-device" checked>
-        <span>Configure device (erase flash and set new configuration)</span>
+        <span>Configure device settings</span>
       </label>
+      <p class="config-hint">Uncheck to update firmware only (keeps existing configuration)</p>
     </div>
 
     <div id="config-fields" class="config-fields">
@@ -66,12 +51,12 @@
       </div>
 
       <div>
-        <label class="field-label" for="influx-org">Organization</label>
+        <label class="field-label" for="influx-org">InfluxDB Organization</label>
         <input type="text" id="influx-org" placeholder="home">
       </div>
 
       <div>
-        <label class="field-label" for="influx-bucket">Bucket</label>
+        <label class="field-label" for="influx-bucket">InfluxDB Bucket</label>
         <input type="text" id="influx-bucket" placeholder="sensors">
       </div>
     </div>
@@ -80,8 +65,8 @@
     <button id="flash-btn">Connect & Flash Firmware</button>
   </section>
 
-  <section>
-    <h3>Log</h3>
+  <section style="padding: 0;">
+    <h3 style="padding: 20px 20px 0;">Log</h3>
     <pre id="log"></pre>
   </section>
   <script type="module">
