@@ -5,61 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP32 Temperature System - Setup</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
-    h1 { margin-bottom: 10px; }
-    section { margin: 30px 0; padding: 20px; background: #f5f5f5; border-radius: 8px; }
-    label { display: block; margin: 15px 0 5px; font-weight: 500; }
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { margin-bottom: 5px; }
+    p.subtitle { margin: 0 0 20px; color: #666; }
+    section { margin: 20px 0; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+    .config-toggle { margin-bottom: 20px; padding: 15px; background: #e8f4f8; border-radius: 6px; border: 2px solid #0066cc; }
+    .config-toggle label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; }
+    .config-toggle input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+    .config-fields { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .config-fields.hidden { display: none; }
+    .full-width { grid-column: 1 / -1; }
+    label.field-label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; }
     input, select { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; }
+    button { padding: 12px 24px; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; margin: 5px 5px 5px 0; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #flash-btn { background: #0066cc; color: white; font-weight: bold; }
+    #flash-btn { background: #0066cc; color: white; font-weight: bold; width: 100%; }
     #flash-btn:hover:not(:disabled) { background: #0052a3; }
-    #log { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+    #status { margin: 10px 0; font-weight: 500; }
+    #log { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 12px; white-space: pre-wrap; }
     .error { color: #ff4444; }
     .success { color: #44ff44; }
   </style>
 </head>
 <body>
   <h1>ESP32 Temperature System</h1>
-  <p>Configure and flash your temperature sensor</p>
+  <p class="subtitle">Flash firmware and configure your temperature sensor</p>
 
   <section>
-    <h2>Configuration</h2>
+    <div class="config-toggle">
+      <label>
+        <input type="checkbox" id="configure-device" checked>
+        <span>Configure device (erase flash and set new configuration)</span>
+      </label>
+    </div>
 
-    <label for="location">Location</label>
-    <input type="text" id="location" placeholder="e.g. Living Room" required>
+    <div id="config-fields" class="config-fields">
+      <div class="full-width">
+        <label class="field-label" for="location">Location</label>
+        <input type="text" id="location" placeholder="e.g. Living Room">
+      </div>
 
-    <label for="wifi-ssid">WiFi SSID</label>
-    <input type="text" id="wifi-ssid" placeholder="Your WiFi network name" required>
+      <div>
+        <label class="field-label" for="wifi-ssid">WiFi SSID</label>
+        <input type="text" id="wifi-ssid" placeholder="Network name">
+      </div>
 
-    <label for="wifi-password">WiFi Password</label>
-    <input type="password" id="wifi-password" placeholder="Your WiFi password" required>
+      <div>
+        <label class="field-label" for="wifi-password">WiFi Password</label>
+        <input type="password" id="wifi-password" placeholder="Password">
+      </div>
 
-    <label for="influx-url">InfluxDB URL</label>
-    <input type="text" id="influx-url" placeholder="http://192.168.1.100:8086" required>
+      <div class="full-width">
+        <label class="field-label" for="influx-url">InfluxDB URL</label>
+        <input type="text" id="influx-url" placeholder="http://192.168.1.100:8086">
+      </div>
 
-    <label for="influx-token">InfluxDB Token</label>
-    <input type="text" id="influx-token" placeholder="Your InfluxDB token" required>
+      <div class="full-width">
+        <label class="field-label" for="influx-token">InfluxDB Token</label>
+        <input type="text" id="influx-token" placeholder="Your InfluxDB token">
+      </div>
 
-    <label for="influx-org">InfluxDB Organization</label>
-    <input type="text" id="influx-org" placeholder="home" required>
+      <div>
+        <label class="field-label" for="influx-org">Organization</label>
+        <input type="text" id="influx-org" placeholder="home">
+      </div>
 
-    <label for="influx-bucket">InfluxDB Bucket</label>
-    <input type="text" id="influx-bucket" placeholder="sensors" required>
-  </section>
+      <div>
+        <label class="field-label" for="influx-bucket">Bucket</label>
+        <input type="text" id="influx-bucket" placeholder="sensors">
+      </div>
+    </div>
 
-  <section>
-    <h2>Flash Device</h2>
-    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-      <input type="checkbox" id="erase-flash" checked>
-      <span>Erase flash before flashing (recommended - clears old configuration)</span>
-    </label>
     <p id="status">Ready to flash</p>
     <button id="flash-btn">Connect & Flash Firmware</button>
   </section>
 
   <section>
-    <h2>Log</h2>
+    <h3>Log</h3>
     <pre id="log"></pre>
   </section>
   <script type="module">
@@ -100,7 +122,23 @@
       log('ERROR: Web Serial API not supported', 'error');
     }
 
+    // Toggle config fields visibility
+    const configCheckbox = document.getElementById('configure-device');
+    const configFields = document.getElementById('config-fields');
+
+    configCheckbox.addEventListener('change', () => {
+      if (configCheckbox.checked) {
+        configFields.classList.remove('hidden');
+      } else {
+        configFields.classList.add('hidden');
+      }
+    });
+
     function validateInputs() {
+      // If not configuring, no validation needed
+      if (!configCheckbox.checked) {
+        return true;
+      }
       const fields = ['location', 'wifi-ssid', 'wifi-password', 'influx-url', 'influx-token', 'influx-org', 'influx-bucket'];
       const missing = fields.filter(id => !document.getElementById(id).value.trim());
 
@@ -209,9 +247,9 @@
           });
         }
 
-        // Optionally erase flash to clear old configuration
-        const shouldErase = document.getElementById('erase-flash').checked;
-        if (shouldErase) {
+        // Erase flash if configuring device
+        const shouldConfigure = configCheckbox.checked;
+        if (shouldConfigure) {
           setStatus('Erasing flash...');
           log('Erasing flash memory to clear old configuration...');
           await esploader.eraseFlash();
@@ -240,28 +278,35 @@
         // Disconnect transport (closes the port)
         await transport.disconnect();
 
-        // Small delay before reopening
-        await new Promise(r => setTimeout(r, 500));
+        // Only send configuration if configuring device
+        if (shouldConfigure) {
+          // Small delay before reopening
+          await new Promise(r => setTimeout(r, 500));
 
-        // Reopen serial port for config with flow control disabled
-        await serialPort.open({
-          baudRate: 115200,
-          flowControl: 'none'
-        });
+          // Reopen serial port for config with flow control disabled
+          await serialPort.open({
+            baudRate: 115200,
+            flowControl: 'none'
+          });
 
-        // Ensure DTR/RTS are not triggering reset
-        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+          // Ensure DTR/RTS are not triggering reset
+          await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
 
-        // Send configuration
-        setStatus('Sending configuration...');
-        await sendConfig(serialPort, config);
+          // Send configuration
+          setStatus('Sending configuration...');
+          await sendConfig(serialPort, config);
 
-        // Done
-        setStatus('Setup complete!');
-        log('Device configured and ready!', 'success');
+          await serialPort.close();
+
+          // Done
+          setStatus('Setup complete!');
+          log('Device configured and ready!', 'success');
+        } else {
+          setStatus('Firmware update complete!');
+          log('Firmware updated. Device will use existing configuration.', 'success');
+        }
+
         log('You can disconnect the device now.');
-
-        await serialPort.close();
 
       } catch (err) {
         setStatus('Failed - see log', true);
