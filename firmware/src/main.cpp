@@ -121,7 +121,7 @@ void loop() {
   sensor.addField("uptime_s",  millis() / 1000);
   sensor.addField("free_heap", ESP.getFreeHeap());
 
-  Serial.printf("Humidity: %.2f%%  Temp: %.2f°C  RSSI: %d dBm  Heap: %u bytes  → ",
+  Serial.printf("Humidity: %.2f%% Temp: %.2f°C RSSI: %d dBm Heap: %u bytes → ",
               humidity, tempC, WiFi.RSSI(), ESP.getFreeHeap());
 
   if (!client->writePoint(sensor)) {
