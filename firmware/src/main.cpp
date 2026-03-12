@@ -75,9 +75,10 @@ void setup() {
   );
 
   // Static tags applied to every data point
-  sensor.addTag("device",   ESP.getChipModel());
-  sensor.addTag("location", cfgLocation.c_str());
-  sensor.addTag("ip",       WiFi.localIP().toString());
+  sensor.addTag("mac",        WiFi.macAddress());
+  sensor.addTag("chip_model", ESP.getChipModel());
+  sensor.addTag("location",   cfgLocation.c_str());
+  sensor.addTag("ip",         WiFi.localIP().toString());
 
   if (client->validateConnection()) {
     Serial.printf("Connected to InfluxDB: %s\n", client->getServerUrl().c_str());
@@ -89,8 +90,6 @@ void setup() {
 }
 
 void loop() {
-  Serial.println("Reading sensor...");
-
   float humidity = dht.readHumidity();
   float tempC    = dht.readTemperature();
   float tempF    = dht.readTemperature(true);
@@ -121,8 +120,8 @@ void loop() {
   sensor.addField("uptime_s",  millis() / 1000);
   sensor.addField("free_heap", ESP.getFreeHeap());
 
-  Serial.printf("Humidity: %.2f%%  Temp: %.2f°C  RSSI: %d dBm  Uptime: %lus  Heap: %u bytes  → ",
-              humidity, tempC, WiFi.RSSI(), millis() / 1000, ESP.getFreeHeap());
+  Serial.printf("Humidity: %.2f%%  Temp: %.2f°C  RSSI: %d dBm  Heap: %u bytes  → ",
+              humidity, tempC, WiFi.RSSI(), ESP.getFreeHeap());
 
   if (!client->writePoint(sensor)) {
     Serial.printf("Write failed: %s\n", client->getLastErrorMessage().c_str());
