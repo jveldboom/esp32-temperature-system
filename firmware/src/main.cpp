@@ -51,12 +51,23 @@ void setup() {
   // Load or receive configuration
   if (!loadConfig()) {
     if (waitForConfig()) {
+      Serial.println("Configuration received from serial:");
+      Serial.printf("  Location: '%s'\n", cfgLocation.c_str());
+      Serial.printf("  WiFi SSID: '%s'\n", cfgWifiSsid.c_str());
+      Serial.printf("  WiFi Pass: '%s'\n", cfgWifiPass.c_str());
+      Serial.printf("  InfluxDB URL: '%s'\n", cfgInfluxUrl.c_str());
       saveConfig();
     } else {
       Serial.println("ERROR: No configuration available!");
       Serial.println("Device cannot operate without configuration.");
       while (true) { delay(1000); } // Halt
     }
+  } else {
+    Serial.println("Using stored configuration:");
+    Serial.printf("  Location: '%s'\n", cfgLocation.c_str());
+    Serial.printf("  WiFi SSID: '%s'\n", cfgWifiSsid.c_str());
+    Serial.printf("  WiFi Pass: '%s'\n", cfgWifiPass.c_str());
+    Serial.printf("  InfluxDB URL: '%s'\n", cfgInfluxUrl.c_str());
   }
 
   // Initialize sensor
