@@ -13,7 +13,12 @@ String cfgInfluxBucket;
 Preferences prefs;
 
 bool loadConfig() {
-  prefs.begin("config", true); // read-only
+  // Try to open preferences namespace (read-only)
+  if (!prefs.begin("config", true)) {
+    // NVS not initialized yet - this is normal on first boot
+    Serial.println("NVS not initialized - waiting for configuration");
+    return false;
+  }
 
   cfgLocation    = prefs.getString("location", "");
   cfgWifiSsid    = prefs.getString("wifi_ssid", "");
