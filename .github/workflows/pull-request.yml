@@ -44,12 +44,6 @@ jobs:
           cd firmware
           pio run
 
-      - name: Run tests
-        run: |
-          cd firmware
-          pio test
-        continue-on-error: true  # Don't fail if no tests exist yet
-
       - name: List build artifacts
         run: |
           echo "Checking for build artifacts..."
@@ -62,3 +56,9 @@ jobs:
           path: |
             firmware/.pio/build/esp32-c3/*.bin
           retention-days: 7
+
+      - name: Run tests
+        run: |
+          cd firmware
+          pio test
+        continue-on-error: true  # Don't fail if no tests exist yet
