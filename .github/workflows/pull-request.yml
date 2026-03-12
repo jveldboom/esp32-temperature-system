@@ -37,9 +37,12 @@ jobs:
         id: get-version
 
       - name: Build firmware
+        env:
+          PLATFORMIO_BUILD_FLAGS: >-
+            -DFIRMWARE_VERSION=\"${{ steps.get-version.outputs.version }}\"
         run: |
           cd firmware
-          pio run --build-flag '-DFIRMWARE_VERSION="${{ steps.get-version.outputs.version }}"'
+          pio run
 
       - name: Run tests
         run: |
