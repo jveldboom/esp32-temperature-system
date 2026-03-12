@@ -16,11 +16,8 @@ InfluxDBClient* client = nullptr;
 Point sensor("dht22");
 
 void connectWifi() {
-  Serial.printf("Connecting to WiFi SSID: '%s'\n", cfgWifiSsid.c_str());
-  Serial.printf("SSID length: %d\n", cfgWifiSsid.length());
-  Serial.printf("Password length: %d\n", cfgWifiPass.length());
+  Serial.printf("Connecting to WiFi: %s\n", cfgWifiSsid.c_str());
 
-  // Set WiFi mode to station
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
@@ -39,8 +36,7 @@ void connectWifi() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("Connected! IP: %s\n", WiFi.localIP().toString().c_str());
   } else {
-    Serial.printf("Failed to connect to WiFi! Status code: %d\n", WiFi.status());
-    Serial.println("Status codes: 0=IDLE, 1=NO_SSID_AVAIL, 3=CONNECTED, 4=CONNECT_FAILED, 6=DISCONNECTED");
+    Serial.println("Failed to connect to WiFi!");
   }
 }
 
@@ -51,23 +47,12 @@ void setup() {
   // Load or receive configuration
   if (!loadConfig()) {
     if (waitForConfig()) {
-      Serial.println("Configuration received from serial:");
-      Serial.printf("  Location: '%s'\n", cfgLocation.c_str());
-      Serial.printf("  WiFi SSID: '%s'\n", cfgWifiSsid.c_str());
-      Serial.printf("  WiFi Pass: '%s'\n", cfgWifiPass.c_str());
-      Serial.printf("  InfluxDB URL: '%s'\n", cfgInfluxUrl.c_str());
       saveConfig();
     } else {
       Serial.println("ERROR: No configuration available!");
       Serial.println("Device cannot operate without configuration.");
       while (true) { delay(1000); } // Halt
     }
-  } else {
-    Serial.println("Using stored configuration:");
-    Serial.printf("  Location: '%s'\n", cfgLocation.c_str());
-    Serial.printf("  WiFi SSID: '%s'\n", cfgWifiSsid.c_str());
-    Serial.printf("  WiFi Pass: '%s'\n", cfgWifiPass.c_str());
-    Serial.printf("  InfluxDB URL: '%s'\n", cfgInfluxUrl.c_str());
   }
 
   // Initialize sensor

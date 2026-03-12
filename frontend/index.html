@@ -306,7 +306,8 @@
           log('Firmware updated. Device will use existing configuration.', 'success');
         }
 
-        log('You can disconnect the device now.');
+        log('\nFlashing complete. Connection closed.');
+        log('To view device output, open the serial monitor page');
 
       } catch (err) {
         setStatus('Failed - see log', true);

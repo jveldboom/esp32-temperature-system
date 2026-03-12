@@ -82,6 +82,7 @@
 
     <button id="connect-btn">Connect</button>
     <button id="disconnect-btn" class="disconnect" disabled>Disconnect</button>
+    <button id="reset-btn" disabled>Restart Device</button>
     <button id="clear-btn">Clear</button>
   </div>
 
@@ -102,6 +103,7 @@
     const outputEl = document.getElementById('output');
     const connectBtn = document.getElementById('connect-btn');
     const disconnectBtn = document.getElementById('disconnect-btn');
+    const resetBtn = document.getElementById('reset-btn');
     const clearBtn = document.getElementById('clear-btn');
     const baudSelect = document.getElementById('baud-rate');
     const sendInput = document.getElementById('send-input');
@@ -133,6 +135,7 @@
 
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
+        resetBtn.disabled = false;
         baudSelect.disabled = true;
         sendInput.disabled = false;
         sendBtn.disabled = false;
@@ -191,10 +194,30 @@
 
       connectBtn.disabled = false;
       disconnectBtn.disabled = true;
+      resetBtn.disabled = true;
       baudSelect.disabled = false;
       sendInput.disabled = true;
       sendBtn.disabled = true;
       lineEndingSelect.disabled = true;
+    });
+
+    resetBtn.addEventListener('click', async () => {
+      if (!port) return;
+
+      try {
+        log('[Restarting device...]\n');
+
+        // Trigger reset using DTR/RTS signals
+        await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+        await new Promise(r => setTimeout(r, 100));
+        await port.setSignals({ dataTerminalReady: true, requestToSend: false });
+        await new Promise(r => setTimeout(r, 50));
+        await port.setSignals({ dataTerminalReady: false });
+
+        log('[Device restarted]\n');
+      } catch (error) {
+        log('[Reset error: ' + error.message + ']\n');
+      }
     });
 
     clearBtn.addEventListener('click', () => {
