@@ -84,9 +84,13 @@ void setup() {
   } else {
     Serial.printf("InfluxDB connection failed: %s\n", client->getLastErrorMessage().c_str());
   }
+
+  Serial.println("\nSetup complete! Starting sensor loop...");
 }
 
 void loop() {
+  Serial.println("Reading sensor...");
+
   float humidity = dht.readHumidity();
   float tempC    = dht.readTemperature();
   float tempF    = dht.readTemperature(true);
