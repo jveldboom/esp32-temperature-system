@@ -50,6 +50,10 @@
 
   <section>
     <h2>Flash Device</h2>
+    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+      <input type="checkbox" id="erase-flash" checked>
+      <span>Erase flash before flashing (recommended - clears old configuration)</span>
+    </label>
     <p id="status">Ready to flash</p>
     <button id="flash-btn">Connect & Flash Firmware</button>
   </section>
@@ -203,6 +207,15 @@
             data: bufferToBinaryString(buffer),
             address: file.offset
           });
+        }
+
+        // Optionally erase flash to clear old configuration
+        const shouldErase = document.getElementById('erase-flash').checked;
+        if (shouldErase) {
+          setStatus('Erasing flash...');
+          log('Erasing flash memory to clear old configuration...');
+          await esploader.eraseFlash();
+          log('Flash erased', 'success');
         }
 
         // Flash firmware
