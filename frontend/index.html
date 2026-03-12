@@ -121,7 +121,16 @@
     }
 
     function bufferToBinaryString(buffer) {
-      return String.fromCharCode(...new Uint8Array(buffer));
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      const chunkSize = 8192;
+
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.slice(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+
+      return binary;
     }
 
     async function sendConfig(port, config) {
