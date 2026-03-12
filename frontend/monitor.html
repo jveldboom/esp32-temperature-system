@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Serial Monitor</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    h1 { margin-bottom: 10px; color: #fff; }
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background: #2d2d2d;
+      border-radius: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    select, button {
+      padding: 8px 16px;
+      font-size: 14px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #3c3c3c;
+      color: #d4d4d4;
+      cursor: pointer;
+    }
+    button:hover:not(:disabled) { background: #4c4c4c; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.connected { background: #0e639c; }
+    button.disconnect { background: #c72e2e; }
+    #output {
+      background: #0c0c0c;
+      color: #0f0;
+      padding: 20px;
+      border-radius: 8px;
+      height: 500px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      border: 1px solid #333;
+    }
+    .input-group {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px;
+      font-family: 'Courier New', monospace;
+      background: #2d2d2d;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #d4d4d4;
+    }
+    input[type="text"]:disabled { opacity: 0.5; }
+  </style>
+</head>
+<body>
+  <h1>ESP32 Serial Monitor</h1>
+  <p>View serial output from your ESP32 device</p>
+
+  <div class="controls">
+    <label>Baud Rate:</label>
+    <select id="baud-rate">
+      <option value="9600">9600</option>
+      <option value="115200" selected>115200</option>
+      <option value="230400">230400</option>
+      <option value="460800">460800</option>
+      <option value="921600">921600</option>
+    </select>
+
+    <button id="connect-btn">Connect</button>
+    <button id="disconnect-btn" class="disconnect" disabled>Disconnect</button>
+    <button id="clear-btn">Clear</button>
+  </div>
+
+  <pre id="output"></pre>
+
+  <div class="input-group">
+    <input type="text" id="send-input" placeholder="Type command and press Enter..." disabled>
+    <select id="line-ending" disabled>
+      <option value="\n">LF</option>
+      <option value="\r\n" selected>CR+LF</option>
+      <option value="\r">CR</option>
+      <option value="">None</option>
+    </select>
+    <button id="send-btn" disabled>Send</button>
+  </div>
+
+  <script>
+    const outputEl = document.getElementById('output');
+    const connectBtn = document.getElementById('connect-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const baudSelect = document.getElementById('baud-rate');
+    const sendInput = document.getElementById('send-input');
+    const sendBtn = document.getElementById('send-btn');
+    const lineEndingSelect = document.getElementById('line-ending');
+
+    let port = null;
+    let reader = null;
+    let writer = null;
+    let keepReading = false;
+
+    // Check Web Serial support
+    if (!('serial' in navigator)) {
+      outputEl.textContent = 'ERROR: Web Serial API not supported. Use Chrome or Edge.\n';
+      connectBtn.disabled = true;
+    }
+
+    function log(text) {
+      outputEl.textContent += text;
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: parseInt(baudSelect.value) });
+
+        log('[Connected at ' + baudSelect.value + ' baud]\n');
+
+        connectBtn.disabled = true;
+        disconnectBtn.disabled = false;
+        baudSelect.disabled = true;
+        sendInput.disabled = false;
+        sendBtn.disabled = false;
+        lineEndingSelect.disabled = false;
+
+        // Set up writer
+        writer = port.writable.getWriter();
+
+        // Set up reader
+        keepReading = true;
+        reader = port.readable.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (keepReading) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (value) {
+              log(decoder.decode(value, { stream: true }));
+            }
+          }
+        } catch (error) {
+          if (keepReading) {
+            log('\n[Error: ' + error.message + ']\n');
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+      } catch (error) {
+        log('[Connection failed: ' + error.message + ']\n');
+      }
+    });
+
+    disconnectBtn.addEventListener('click', async () => {
+      keepReading = false;
+
+      try {
+        if (reader) {
+          await reader.cancel();
+          reader = null;
+        }
+        if (writer) {
+          await writer.releaseLock();
+          writer = null;
+        }
+        if (port) {
+          await port.close();
+          port = null;
+        }
+      } catch (error) {
+        log('[Disconnect error: ' + error.message + ']\n');
+      }
+
+      log('\n[Disconnected]\n');
+
+      connectBtn.disabled = false;
+      disconnectBtn.disabled = true;
+      baudSelect.disabled = false;
+      sendInput.disabled = true;
+      sendBtn.disabled = true;
+      lineEndingSelect.disabled = true;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      outputEl.textContent = '';
+    });
+
+    async function sendCommand() {
+      if (!writer || !sendInput.value) return;
+
+      const text = sendInput.value;
+      const ending = lineEndingSelect.value
+        .replace('\\r\\n', '\r\n')
+        .replace('\\n', '\n')
+        .replace('\\r', '\r');
+
+      try {
+        const encoder = new TextEncoder();
+        await writer.write(encoder.encode(text + ending));
+        log('> ' + text + '\n');
+        sendInput.value = '';
+      } catch (error) {
+        log('[Send error: ' + error.message + ']\n');
+      }
+    }
+
+    sendBtn.addEventListener('click', sendCommand);
+    sendInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendCommand();
+    });
+
+  </script>
+</body>
+</html>

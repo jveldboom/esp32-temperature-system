@@ -219,9 +219,8 @@
 
         log('Firmware flashed successfully!', 'success');
 
-        // Disconnect transport and reopen for serial config
+        // Disconnect transport (closes the port)
         await transport.disconnect();
-        await serialPort.close();
 
         // Reopen serial port for config
         await serialPort.open({ baudRate: 115200 });
