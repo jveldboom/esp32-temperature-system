@@ -134,10 +134,10 @@
     }
 
     async function sendConfig(port, config) {
-      log('Waiting for device to boot...');
+      log('Waiting for device to be ready...');
 
-      // Wait longer for ESP32 to boot and start listening (5 seconds)
-      await new Promise(r => setTimeout(r, 5000));
+      // Wait for ESP32 to boot and start listening (2 seconds should be enough)
+      await new Promise(r => setTimeout(r, 2000));
 
       log('Sending configuration...');
       const writer = port.writable.getWriter();
@@ -227,8 +227,17 @@
         // Disconnect transport (closes the port)
         await transport.disconnect();
 
-        // Reopen serial port for config
-        await serialPort.open({ baudRate: 115200 });
+        // Small delay before reopening
+        await new Promise(r => setTimeout(r, 500));
+
+        // Reopen serial port for config with flow control disabled
+        await serialPort.open({
+          baudRate: 115200,
+          flowControl: 'none'
+        });
+
+        // Ensure DTR/RTS are not triggering reset
+        await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
 
         // Send configuration
         setStatus('Sending configuration...');
