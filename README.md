@@ -19,7 +19,7 @@ LINK COMING SOON...
 4. Click "Connect & Flash Firmware"
 5. View device output from the "Serial Monitor" tab
 
-You should see something like this every 60 seconds if the everything is working. If still having issues, view the [Device Hardware](docs/hardware.md) document for device specific guidance.
+You should see something like this every 60 seconds if everything is working. If still having issues, view the [Device Hardware](docs/hardware.md) document for device specific guidance.
 ```
 Connecting to WiFi: <my-ssid>
 Connected! IP: 192.168.0.200
