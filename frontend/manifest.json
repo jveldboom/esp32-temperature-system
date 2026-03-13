@@ -3,7 +3,7 @@
   "releases": [
     {
       "version": "1.0.0",
-      "notes": "Initial releaseresr",
+      "notes": "Initial release",
       "chipFamily": "ESP32-C3",
       "parts": [
         { "path": "/firmware/.pio/build/esp32-c3/bootloader.bin",  "offset": 0 },
