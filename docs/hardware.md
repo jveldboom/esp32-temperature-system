@@ -6,15 +6,21 @@
 
 **Board Type**: ESP32-C3
 
-- [Link to Amazon]()
-- **Specs**:
-  -
+- Amazon search: https://www.amazon.com/s?k=ESP32-C3+development+board+USB-C
+- **Specs (typical)**:
+  - ESP32-C3 microcontroller (RISC-V, Wi‑Fi, Bluetooth LE)
+  - USB‑C connector for power and programming
+  - On‑board reset and boot buttons
+  - 3.3 V operating voltage
 
 ### DHT22 Temperature/Humidity Sensor
 
-- [Link to Amazon]()
-- **Specs**:
-  -
+- Amazon search: https://www.amazon.com/s?k=DHT22+temperature+humidity+sensor
+- **Specs (typical)**:
+  - Temperature range: -40°C to +80°C
+  - Humidity range: 0% to 100% RH
+  - Operating voltage: 3.3 V to 6.0 V
+  - Digital single-wire interface
 
 ### Additional Parts
 
