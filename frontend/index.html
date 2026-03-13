@@ -347,20 +347,41 @@
         await esploader.main();
         log(`Connected to ${esploader.chip.CHIP_NAME}`, 'success');
 
-        // Load firmware files from selected release
+        // Load firmware files from GitHub release via API
         setStatus('Loading firmware...');
         log(`Using firmware v${selectedRelease.version}`);
-        const fileArray = [];
 
-        for (const part of selectedRelease.parts) {
-          log(`Loading ${part.path}...`);
-          const response = await fetch(part.path);
-          if (!response.ok) throw new Error(`Failed to load ${part.path}`);
+        // Fetch release assets from GitHub API
+        const apiUrl = `https://api.github.com/repos/${manifest.github.owner}/${manifest.github.repo}/releases/tags/${selectedRelease.version}`;
+        log(`Fetching release data from GitHub API...`);
+        const releaseResponse = await fetch(apiUrl);
+        if (!releaseResponse.ok) throw new Error(`Failed to fetch release: ${releaseResponse.status}`);
+
+        const releaseData = await releaseResponse.json();
+        const assets = releaseData.assets;
+
+        // Define required files with their memory offsets
+        const requiredFiles = [
+          { name: 'esp32-c3-bootloader.bin', offset: 0 },
+          { name: 'esp32-c3-partitions.bin', offset: 32768 },
+          { name: 'esp32-c3-firmware.bin', offset: 65536 }
+        ];
+
+        const fileArray = [];
+        for (const file of requiredFiles) {
+          const asset = assets.find(a => a.name === file.name);
+          if (!asset) throw new Error(`Missing asset: ${file.name}`);
+
+          log(`Loading ${file.name}...`);
+          const response = await fetch(asset.url, {
+            headers: { 'Accept': 'application/octet-stream' }
+          });
+          if (!response.ok) throw new Error(`Failed to load ${file.name}: ${response.status}`);
 
           const buffer = await response.arrayBuffer();
           fileArray.push({
             data: bufferToBinaryString(buffer),
-            address: part.offset
+            address: file.offset
           });
         }
 

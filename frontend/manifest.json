@@ -1,15 +1,14 @@
 {
   "name": "My ESP32-C3 Firmware",
+  "github": {
+    "owner": "jveldboom",
+    "repo": "esp32-temperature-system"
+  },
   "releases": [
     {
       "version": "0.0.1",
       "notes": "Initial pre-release",
-      "chipFamily": "ESP32-C3",
-      "parts": [
-        { "path": "releases/esp32-c3-bootloader.bin",  "offset": 0 },
-        { "path": "releases/esp32-c3-partitions.bin",  "offset": 32768 },
-        { "path": "releases/esp32-c3-firmware.bin",    "offset": 65536 }
-      ]
+      "chipFamily": "ESP32-C3"
     }
   ]
 }
