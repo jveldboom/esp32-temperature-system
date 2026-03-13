@@ -1,9 +1,5 @@
 {
   "name": "ESP32 Firmware Manifest",
-  "github": {
-    "owner": "jveldboom",
-    "repo": "esp32-temperature-system"
-  },
   "releases": [
     {
       "version": "0.0.1",
