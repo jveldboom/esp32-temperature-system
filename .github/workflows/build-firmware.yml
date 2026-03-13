@@ -1,7 +1,11 @@
-name: pull-request
+name: build-firmware
 
 on:
-  pull_request:
+  push:
+    branches: [ main ]
+    paths:
+      - 'firmware/**'
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -50,3 +54,14 @@ jobs:
           path: |
             firmware/.pio/build/esp32-c3/*.bin
           retention-days: 7
+
+      # Only create a release on pushes to main
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.get-version.outputs.version }}" \
+            --generate-notes \
+            --notes-start-tag "${{ steps.version.outputs.previous-version }}" \
+            firmware/.pio/build/esp32-c3/*.bin
