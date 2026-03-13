@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Temperature System</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    /* Tab content visibility */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Tab navigation styling */
+    nav a {
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="light">
+  <h1>ESP32 Temperature System</h1>
+  <p class="subtitle">Flash firmware and monitor your temperature sensor</p>
+
+  <nav>
+    <a id="tab-flash" class="active">Flash Firmware</a>
+    <a id="tab-monitor">Serial Monitor</a>
+  </nav>
+
+  <!-- Flash Firmware Tab -->
+  <div id="content-flash" class="tab-content active">
+    <section>
+      <div class="firmware-selector">
+        <label class="field-label" for="firmware-version">Firmware Version</label>
+        <select id="firmware-version" disabled>
+          <option>Loading...</option>
+        </select>
+        <p class="firmware-notes" id="firmware-notes"></p>
+      </div>
+
+      <div class="config-toggle">
+        <label>
+          <input type="checkbox" id="configure-device" checked>
+          <span>Configure device settings</span>
+        </label>
+        <p class="config-hint">Uncheck to update firmware only (keeps existing configuration)</p>
+      </div>
+
+      <div id="config-fields" class="config-fields">
+        <div class="full-width">
+          <label class="field-label" for="location">Location</label>
+          <input type="text" id="location" placeholder="e.g. Living Room">
+        </div>
+
+        <div>
+          <label class="field-label" for="wifi-ssid">WiFi SSID</label>
+          <input type="text" id="wifi-ssid" placeholder="Network name">
+        </div>
+
+        <div>
+          <label class="field-label" for="wifi-password">WiFi Password</label>
+          <input type="password" id="wifi-password" placeholder="Password">
+        </div>
+
+        <div class="full-width">
+          <label class="field-label" for="influx-url">InfluxDB URL</label>
+          <input type="text" id="influx-url" placeholder="http://192.168.1.100:8086">
+        </div>
+
+        <div class="full-width">
+          <label class="field-label" for="influx-token">InfluxDB Token</label>
+          <input type="text" id="influx-token" placeholder="Your InfluxDB token">
+        </div>
+
+        <div>
+          <label class="field-label" for="influx-org">InfluxDB Organization</label>
+          <input type="text" id="influx-org" placeholder="home">
+        </div>
+
+        <div>
+          <label class="field-label" for="influx-bucket">InfluxDB Bucket</label>
+          <input type="text" id="influx-bucket" placeholder="sensors">
+        </div>
+      </div>
+
+      <p id="status">Ready to flash</p>
+      <button id="flash-btn">Connect & Flash Firmware</button>
+    </section>
+
+    <section style="padding: 0;">
+      <h3 style="padding: 20px 20px 0;">Log</h3>
+      <pre id="log"></pre>
+    </section>
+  </div>
+
+  <!-- Serial Monitor Tab -->
+  <div id="content-monitor" class="tab-content">
+    <div class="controls">
+      <button id="connect-btn">Connect</button>
+      <button id="disconnect-btn" class="disconnect" disabled>Disconnect</button>
+      <button id="reset-btn" disabled>Restart Device</button>
+      <button id="clear-btn">Clear</button>
+    </div>
+
+    <pre id="output"></pre>
+
+    <div class="input-group">
+      <input type="text" id="send-input" placeholder="Type command and press Enter..." disabled>
+      <select id="line-ending" disabled>
+        <option value="\n">LF</option>
+        <option value="\r\n" selected>CR+LF</option>
+        <option value="\r">CR</option>
+        <option value="">None</option>
+      </select>
+      <button id="send-btn" disabled>Send</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // ========================================
+    // TAB SWITCHING
+    // ========================================
+    const tabFlash = document.getElementById('tab-flash');
+    const tabMonitor = document.getElementById('tab-monitor');
+    const contentFlash = document.getElementById('content-flash');
+    const contentMonitor = document.getElementById('content-monitor');
+
+    function switchTab(tab) {
+      // Update tab active states
+      tabFlash.classList.remove('active');
+      tabMonitor.classList.remove('active');
+
+      // Update content visibility
+      contentFlash.classList.remove('active');
+      contentMonitor.classList.remove('active');
+
+      if (tab === 'flash') {
+        tabFlash.classList.add('active');
+        contentFlash.classList.add('active');
+      } else {
+        tabMonitor.classList.add('active');
+        contentMonitor.classList.add('active');
+      }
+    }
+
+    tabFlash.addEventListener('click', () => switchTab('flash'));
+    tabMonitor.addEventListener('click', () => switchTab('monitor'));
+
+    // ========================================
+    // FLASH FIRMWARE FUNCTIONALITY
+    // ========================================
+    import { ESPLoader, Transport } from './esptool-js-0.5.6.bundle.js';
+
+    const flashBtn = document.getElementById('flash-btn');
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    const firmwareVersionSelect = document.getElementById('firmware-version');
+    const firmwareNotesEl = document.getElementById('firmware-notes');
+
+    let manifest = null;
+    let selectedRelease = null;
+
+    const terminal = {
+      clean() { logEl.textContent = ''; },
+      writeLine(data) { log(data); },
+      write(data) { logEl.textContent += data; logEl.scrollTop = logEl.scrollHeight; }
+    };
+
+    function log(msg, type = '') {
+      const prefix = type === 'error' ? '❌ ' : type === 'success' ? '✓ ' : '';
+      logEl.textContent += prefix + msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.className = isError ? 'error' : '';
+    }
+
+    // Load firmware manifest
+    async function loadManifest() {
+      try {
+        const response = await fetch('manifest.json');
+        if (!response.ok) throw new Error('Failed to load manifest.json');
+
+        manifest = await response.json();
+
+        // Populate version dropdown
+        firmwareVersionSelect.innerHTML = '';
+        manifest.releases.forEach((release, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = `v${release.version} - ${release.chipFamily}`;
+          firmwareVersionSelect.appendChild(option);
+        });
+
+        firmwareVersionSelect.disabled = false;
+
+        // Select first version by default
+        if (manifest.releases.length > 0) {
+          firmwareVersionSelect.value = '0';
+          updateSelectedRelease();
+        }
+
+        log('Firmware manifest loaded', 'success');
+      } catch (err) {
+        setStatus('Failed to load firmware manifest', true);
+        log('Error loading manifest: ' + err.message, 'error');
+        firmwareVersionSelect.innerHTML = '<option>Error loading versions</option>';
+      }
+    }
+
+    function updateSelectedRelease() {
+      const index = parseInt(firmwareVersionSelect.value);
+      selectedRelease = manifest.releases[index];
+      firmwareNotesEl.textContent = selectedRelease.notes;
+    }
+
+    // Listen for version changes
+    firmwareVersionSelect.addEventListener('change', updateSelectedRelease);
+
+    // Load manifest on page load
+    loadManifest();
+
+    // Check Web Serial support
+    if (!('serial' in navigator)) {
+      setStatus('Web Serial not supported. Use Chrome or Edge.', true);
+      flashBtn.disabled = true;
+      log('ERROR: Web Serial API not supported', 'error');
+    }
+
+    // Toggle config fields visibility
+    const configCheckbox = document.getElementById('configure-device');
+    const configFields = document.getElementById('config-fields');
+
+    configCheckbox.addEventListener('change', () => {
+      if (configCheckbox.checked) {
+        configFields.classList.remove('hidden');
+      } else {
+        configFields.classList.add('hidden');
+      }
+    });
+
+    function validateInputs() {
+      // If not configuring, no validation needed
+      if (!configCheckbox.checked) {
+        return true;
+      }
+      const fields = ['location', 'wifi-ssid', 'wifi-password', 'influx-url', 'influx-token', 'influx-org', 'influx-bucket'];
+      const missing = fields.filter(id => !document.getElementById(id).value.trim());
+
+      if (missing.length > 0) {
+        setStatus('Please fill in all fields', true);
+        log('Missing required fields: ' + missing.join(', '), 'error');
+        return false;
+      }
+      return true;
+    }
+
+    function getConfig() {
+      return {
+        location: document.getElementById('location').value.trim(),
+        ssid: document.getElementById('wifi-ssid').value.trim(),
+        password: document.getElementById('wifi-password').value.trim(),
+        influxUrl: document.getElementById('influx-url').value.trim(),
+        influxToken: document.getElementById('influx-token').value.trim(),
+        influxOrg: document.getElementById('influx-org').value.trim(),
+        influxBucket: document.getElementById('influx-bucket').value.trim()
+      };
+    }
+
+    function bufferToBinaryString(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      const chunkSize = 8192;
+
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.slice(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+
+      return binary;
+    }
+
+    async function sendConfig(port, config) {
+      log('Waiting for device to be ready...');
+
+      // Wait for ESP32 to boot and start listening (2 seconds should be enough)
+      await new Promise(r => setTimeout(r, 2000));
+
+      log('Sending configuration...');
+      const writer = port.writable.getWriter();
+
+      const configData = [
+        `LOCATION=${config.location}`,
+        `WIFI_SSID=${config.ssid}`,
+        `WIFI_PASS=${config.password}`,
+        `INFLUX_URL=${config.influxUrl}`,
+        `INFLUX_TOKEN=${config.influxToken}`,
+        `INFLUX_ORG=${config.influxOrg}`,
+        `INFLUX_BUCKET=${config.influxBucket}`,
+        'CONFIG_END'
+      ].join('\n') + '\n';
+
+      log('Config data to send:\n' + configData);
+
+      await writer.write(new TextEncoder().encode(configData));
+      await writer.releaseLock();
+
+      log('Configuration sent', 'success');
+      log('Check the Serial Monitor to verify device received config.');
+    }
+
+    flashBtn.addEventListener('click', async () => {
+      if (!validateInputs()) return;
+
+      // Check if firmware is selected
+      if (!selectedRelease) {
+        setStatus('Please wait for firmware manifest to load', true);
+        return;
+      }
+
+      const config = getConfig();
+      flashBtn.disabled = true;
+      terminal.clean();
+      setStatus('Connecting to device...');
+
+      let serialPort = null;
+      let transport = null;
+
+      try {
+        // Connect to device
+        serialPort = await navigator.serial.requestPort();
+        transport = new Transport(serialPort, true);
+
+        const esploader = new ESPLoader({
+          transport,
+          baudrate: 921600,
+          terminal,
+          debugLogging: false
+        });
+
+        log('Connecting...');
+        await esploader.main();
+        log(`Connected to ${esploader.chip.CHIP_NAME}`, 'success');
+
+        // Load firmware files from selected release
+        setStatus('Loading firmware...');
+        log(`Using firmware v${selectedRelease.version}`);
+        const fileArray = [];
+
+        for (const part of selectedRelease.parts) {
+          log(`Loading ${part.path}...`);
+          const response = await fetch(part.path);
+          if (!response.ok) throw new Error(`Failed to load ${part.path}`);
+
+          const buffer = await response.arrayBuffer();
+          fileArray.push({
+            data: bufferToBinaryString(buffer),
+            address: part.offset
+          });
+        }
+
+        // Erase flash if configuring device
+        const shouldConfigure = configCheckbox.checked;
+        if (shouldConfigure) {
+          setStatus('Erasing flash...');
+          log('Erasing flash memory to clear old configuration...');
+          await esploader.eraseFlash();
+          log('Flash erased', 'success');
+        }
+
+        // Flash firmware
+        setStatus('Flashing firmware...');
+        log('Flashing — do not disconnect!');
+
+        await esploader.writeFlash({
+          fileArray,
+          flashSize: 'keep',
+          flashMode: 'keep',
+          flashFreq: 'keep',
+          eraseAll: false,
+          compress: true,
+          reportProgress(fileIndex, written, total) {
+            const pct = Math.round((written / total) * 100);
+            setStatus(`Flashing... ${pct}%`);
+          }
+        });
+
+        log('Firmware flashed successfully!', 'success');
+
+        // Disconnect transport (closes the port)
+        await transport.disconnect();
+
+        // Only send configuration if configuring device
+        if (shouldConfigure) {
+          // Small delay before reopening
+          await new Promise(r => setTimeout(r, 500));
+
+          // Reopen serial port for config with flow control disabled
+          await serialPort.open({
+            baudRate: 115200,
+            flowControl: 'none'
+          });
+
+          // Ensure DTR/RTS are not triggering reset
+          await serialPort.setSignals({ dataTerminalReady: false, requestToSend: false });
+
+          // Send configuration
+          setStatus('Sending configuration...');
+          await sendConfig(serialPort, config);
+
+          await serialPort.close();
+
+          // Done
+          setStatus('Setup complete!');
+          log('Device configured and ready!', 'success');
+        } else {
+          setStatus('Firmware update complete!');
+          log('Firmware updated. Device will use existing configuration.', 'success');
+        }
+
+        log('\nFlashing complete. Connection closed.');
+        log('To view device output, switch to the Serial Monitor tab');
+
+      } catch (err) {
+        setStatus('Failed - see log', true);
+        log('Error: ' + err.message, 'error');
+      } finally {
+        try {
+          if (transport) await transport.disconnect();
+          if (serialPort) await serialPort.close();
+        } catch (_) {}
+        flashBtn.disabled = false;
+      }
+    });
+
+    // ========================================
+    // SERIAL MONITOR FUNCTIONALITY
+    // ========================================
+    const outputEl = document.getElementById('output');
+    const connectBtn = document.getElementById('connect-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const sendInput = document.getElementById('send-input');
+    const sendBtn = document.getElementById('send-btn');
+    const lineEndingSelect = document.getElementById('line-ending');
+
+    const BAUD_RATE = 115200; // Matches firmware Serial.begin(115200)
+
+    let port = null;
+    let reader = null;
+    let writer = null;
+    let keepReading = false;
+
+    // Check Web Serial support
+    if (!('serial' in navigator)) {
+      outputEl.textContent = 'ERROR: Web Serial API not supported. Use Chrome or Edge.\n';
+      connectBtn.disabled = true;
+    }
+
+    function logMonitor(text) {
+      outputEl.textContent += text;
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: BAUD_RATE });
+
+        logMonitor('[Connected at ' + BAUD_RATE + ' baud]\n');
+
+        connectBtn.disabled = true;
+        disconnectBtn.disabled = false;
+        resetBtn.disabled = false;
+        sendInput.disabled = false;
+        sendBtn.disabled = false;
+        lineEndingSelect.disabled = false;
+
+        // Set up writer
+        writer = port.writable.getWriter();
+
+        // Set up reader
+        keepReading = true;
+        reader = port.readable.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (keepReading) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (value) {
+              logMonitor(decoder.decode(value, { stream: true }));
+            }
+          }
+        } catch (error) {
+          if (keepReading) {
+            logMonitor('\n[Error: ' + error.message + ']\n');
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+      } catch (error) {
+        logMonitor('[Connection failed: ' + error.message + ']\n');
+      }
+    });
+
+    disconnectBtn.addEventListener('click', async () => {
+      keepReading = false;
+
+      try {
+        if (reader) {
+          await reader.cancel();
+          reader = null;
+        }
+        if (writer) {
+          await writer.releaseLock();
+          writer = null;
+        }
+        if (port) {
+          await port.close();
+          port = null;
+        }
+      } catch (error) {
+        logMonitor('[Disconnect error: ' + error.message + ']\n');
+      }
+
+      logMonitor('\n[Disconnected]\n');
+
+      connectBtn.disabled = false;
+      disconnectBtn.disabled = true;
+      resetBtn.disabled = true;
+      sendInput.disabled = true;
+      sendBtn.disabled = true;
+      lineEndingSelect.disabled = true;
+    });
+
+    resetBtn.addEventListener('click', async () => {
+      if (!port) return;
+
+      try {
+        logMonitor('[Restarting device...]\n');
+
+        // Trigger reset using DTR/RTS signals
+        await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+        await new Promise(r => setTimeout(r, 100));
+        await port.setSignals({ dataTerminalReady: true, requestToSend: false });
+        await new Promise(r => setTimeout(r, 50));
+        await port.setSignals({ dataTerminalReady: false });
+
+        logMonitor('[Device restarted]\n');
+      } catch (error) {
+        logMonitor('[Reset error: ' + error.message + ']\n');
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      outputEl.textContent = '';
+    });
+
+    async function sendCommand() {
+      if (!writer || !sendInput.value) return;
+
+      const text = sendInput.value;
+      const ending = lineEndingSelect.value
+        .replace('\\r\\n', '\r\n')
+        .replace('\\n', '\n')
+        .replace('\\r', '\r');
+
+      try {
+        const encoder = new TextEncoder();
+        await writer.write(encoder.encode(text + ending));
+        logMonitor('> ' + text + '\n');
+        sendInput.value = '';
+      } catch (error) {
+        logMonitor('[Send error: ' + error.message + ']\n');
+      }
+    }
+
+    sendBtn.addEventListener('click', sendCommand);
+    sendInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendCommand();
+    });
+
+  </script>
+
+</body>
+</html>
