@@ -22,7 +22,7 @@ echo "Repository: ${REPO_OWNER}/${REPO_NAME}"
 FAILED=0
 
 # Extract unique version/file combinations from manifest and download each binary
-jq -r '.releases[] | .version as $version | .parts[] | "\($version) \(.path | split("/")[-1])"' manifest.json | sort -u | while IFS=' ' read -r version filename; do
+while IFS=' ' read -r version filename; do
   mkdir -p "releases/${version}"
 
   echo "Downloading ${filename} for version ${version}..."
@@ -35,7 +35,7 @@ jq -r '.releases[] | .version as $version | .parts[] | "\($version) \(.path | sp
     echo "  ✗ Failed to download ${filename} for ${version}" >&2
     FAILED=1
   fi
-done
+done < <(jq -r '.releases[] | .version as $version | .parts[] | "\($version) \(.path | split("/")[-1])"' manifest.json | sort -u)
 
 if [ $FAILED -eq 1 ]; then
   echo ""
