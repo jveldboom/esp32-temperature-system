@@ -23,8 +23,8 @@ You should see something like this every 60 seconds if the everything is working
 ```
 Connecting to WiFi: <my-ssid>
 Connected! IP: 192.168.0.200
-Humidity: 50% Temp: 23°C RSSI: 35 dBm Heap: 210000u bytes
-Humidity: 50% Temp: 23°C RSSI: 35 dBm Heap: 210000u bytes
+Humidity: 50% Temp: 23°C RSSI: 35 dBm Heap: 210000 bytes
+Humidity: 50% Temp: 23°C RSSI: 35 dBm Heap: 210000 bytes
 ```
 
 ### 2. Start Backend (InfluxDB + Grafana)
