@@ -60,6 +60,6 @@ docker-compose logs -f
 
 # stop services
 docker-compose down
-# stop and remove all data:**
+# stop and remove all data
 docker-compose down -v
 ```
