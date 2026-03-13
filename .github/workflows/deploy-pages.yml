@@ -26,6 +26,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Download release binaries
+        run: |
+          # Parse manifest.json to get all releases and their parts
+          cd frontend
+
+          # Extract unique version/file combinations from manifest
+          jq -r '.releases[] | .version as $version | .parts[] | "\($version) \(.path | split("/")[-1])"' manifest.json | while read version filename; do
+            mkdir -p "releases/${version}"
+            echo "Downloading ${filename} for version ${version}..."
+            curl -L -o "releases/${version}/${filename}" \
+              "https://github.com/${{ github.repository }}/releases/download/${version}/${filename}" \
+              || echo "Warning: Failed to download ${filename} for ${version}"
+          done
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
