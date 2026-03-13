@@ -6,9 +6,9 @@
       "notes": "Initial pre-release",
       "chipFamily": "ESP32-C3",
       "parts": [
-        { "path": "https://github.com/jveldboom/esp32-temperature-system/releases/download/v0.0.1/esp32-c3-bootloader.bin",  "offset": 0 },
-        { "path": "https://github.com/jveldboom/esp32-temperature-system/releases/download/v0.0.1/esp32-c3-partitions.bin",  "offset": 32768 },
-        { "path": "https://github.com/jveldboom/esp32-temperature-system/releases/download/v0.0.1/esp32-c3-firmware.bin",    "offset": 65536 }
+        { "path": "https://github.com/jveldboom/esp32-temperature-system/releases/download/0.0.1/esp32-c3-bootloader.bin",  "offset": 0 },
+        { "path": "https://github.com/jveldboom/esp32-temperature-system/releases/download/0.0.1/esp32-c3-partitions.bin",  "offset": 32768 },
+        { "path": "https://github.com/jveldboom/esp32-temperature-system/releases/download/0.0.1/esp32-c3-firmware.bin",    "offset": 65536 }
       ]
     }
   ]
