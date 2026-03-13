@@ -5,9 +5,9 @@ Complete temperature monitoring system: ESP32 firmware, web-based flasher, and l
 
 ### 1. Flash ESP32 Device
 
-See [Hardware Requirements](docs/hardware.md) for list of compatible ESP32 boards, DHT22 sensor, and wiring guide.
+See [hardware requirements](docs/hardware.md) for list of compatible ESP32 boards, DHT22 sensor, and wiring guide.
 
-LINK COMING SOON...
+**[Firmware Flash Web Tool](https://jveldboom.github.io/esp32-temperature-system/)**
 
 1. Select firmware version
 2. Enter configuration:

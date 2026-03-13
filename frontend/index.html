@@ -193,7 +193,7 @@
         manifest.releases.forEach((release, index) => {
           const option = document.createElement('option');
           option.value = index;
-          option.textContent = `v${release.version} - ${release.chipFamily}`;
+          option.textContent = `${release.version} - ${release.chipFamily}`;
           firmwareVersionSelect.appendChild(option);
         });
 
