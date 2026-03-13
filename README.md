@@ -38,7 +38,7 @@ Access services:
 - InfluxDB: http://localhost:8086
 - Grafana: http://localhost:3000 (admin/admin)
 
-The InfluxDB Data Explorer is a great way to view all the available data. Below is a quick example InfluxDB query to show all data in the `sensor` bucket:
+The InfluxDB Data Explorer is a great way to view all the available data. Below is a quick example InfluxDB query to show all data in the `sensors` bucket:
 
 ```flux
 from(bucket: "sensors")
