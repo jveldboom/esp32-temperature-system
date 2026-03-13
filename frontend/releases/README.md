@@ -29,7 +29,7 @@ curl -L -O https://github.com/jveldboom/esp32-temperature-system/releases/downlo
 
 ## GitHub Pages Deployment
 
-The GitHub Actions workflow automatically downloads binaries from releases during deployment, so this directory remains empty in the repository.
+The GitHub Actions workflow automatically downloads binaries from releases during deployment, so this directory contains no binaries in the repository.
 
 ## Note
 
