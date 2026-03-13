@@ -354,11 +354,8 @@
 
         for (const part of selectedRelease.parts) {
           log(`Loading ${part.path}...`);
-          const response = await fetch(part.path, {
-            mode: 'cors',
-            cache: 'default'
-          });
-          if (!response.ok) throw new Error(`Failed to load ${part.path}: ${response.status} ${response.statusText}`);
+          const response = await fetch(part.path);
+          if (!response.ok) throw new Error(`Failed to load ${part.path}`);
 
           const buffer = await response.arrayBuffer();
           fileArray.push({
