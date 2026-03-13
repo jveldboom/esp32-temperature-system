@@ -35,12 +35,12 @@
 | DHT22 Pin | ESP32-C3 Pin | Notes |
 |-----------|--------------|-------|
 | VCC       | 3.3V         |       |
-| DATA      | GPIO X       |       |
+| DATA      | GPIO 4       | Firmware expects DHT22 DATA on GPIO 4 (`DHTPIN 4`) |
 | GND       | GND          |       |
 
 ### Wiring Notes
 
--
+- The current firmware is hardcoded to read the DHT22 sensor on GPIO 4. Make sure the DHT22 DATA pin is connected to GPIO 4 on the ESP32-C3, or update and rebuild the firmware if you need a different pin.
 
 ## Setup Instructions
 
