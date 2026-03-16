@@ -5,3 +5,6 @@ start-frontend:
 
 start-backend:
 	cd backend && docker compose up
+
+download-releases:
+	@./frontend/download-releases.sh

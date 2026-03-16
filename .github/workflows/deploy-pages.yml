@@ -26,6 +26,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Download release binaries
+        run: ./frontend/download-releases.sh
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

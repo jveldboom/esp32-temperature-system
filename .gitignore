@@ -14,7 +14,7 @@
 .claude
 
 # Build artifacts - firmware binaries
-frontend/*.bin
+frontend/**/*.bin
 
 # Credentials and secrets
 *.env
