@@ -42,5 +42,5 @@ I've had good luck getting the cheapest available option on Amazon.com for the D
 <details>
 <summary>DHT22</summary>
 
-![dht22 pinout](./dth22-pinout.png)
+![dht22 pinout](./dht22-pinout.png)
 </details>
