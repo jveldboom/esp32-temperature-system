@@ -1,32 +1,19 @@
-# ESP32 Hardware Guide
+# Hardware Guide
+For this project, you will need a compatible ESP32 board and the DHT22 temperature/humidity sensor. Below is a quick list of hardware components that have been validated to work with this project.
 
-## Required Components
+## ESP32 Development Boards
 
-### ESP32 Development Board
+| Board | Link | Notes |
+|-------|------|-------|
+| ESP32-C3 (Supermini) | [Amazon.com](https://www.amazon.com/dp/B0FR9369C3?ref=ppx_yo2ov_dt_b_fed_asin_title) ~$16 for 4 | - best low cost option<br />- includes header pins |
+| ESP32-C3 (Seeed Studio) | [Amazon.com](https://www.amazon.com/dp/B0DGX3LSC7) ~$20 for 3<br/>[Amazon.com](https://www.amazon.com/dp/B0DRNSV5CS) ~$11 w/ header pins | - better quality control |
 
-**Board Type**: ESP32-C3
+## DHT22 Temperature/Humidity Sensor
+I've had good luck getting the cheapest available option on Amazon.com for the DHT22 sensors. You don't need to pay more for better quality.
 
-- Amazon search: https://www.amazon.com/s?k=ESP32-C3+development+board+USB-C
-- **Specs (typical)**:
-  - ESP32-C3 microcontroller (RISC-V, Wi‑Fi, Bluetooth LE)
-  - USB‑C connector for power and programming
-  - On‑board reset and boot buttons
-  - 3.3 V operating voltage
+- [Amazon - DHT22 4x](https://www.amazon.com/dp/B0FCLX5GTZ) ~$10
+- [Amazon search for DHT22 temperature humidity sensor](https://www.amazon.com/s?k=DHT22+temperature+humidity+sensor)
 
-### DHT22 Temperature/Humidity Sensor
-
-- Amazon search: https://www.amazon.com/s?k=DHT22+temperature+humidity+sensor
-- **Specs (typical)**:
-  - Temperature range: -40°C to +80°C
-  - Humidity range: 0% to 100% RH
-  - Operating voltage: 3.3 V to 6.0 V
-  - Digital single-wire interface
-
-### Additional Parts
-
-- USB-C cable (for programming ESP32)
-- Jumper wires
-- Breadboard (optional)
 
 ## Wiring Diagram
 
@@ -38,22 +25,16 @@
 | DATA      | GPIO 4       | Firmware expects DHT22 DATA on GPIO 4 (`DHTPIN 4`) |
 | GND       | GND          |       |
 
-### Wiring Notes
+### Pinouts
 
-- The current firmware is hardcoded to read the DHT22 sensor on GPIO 4. Make sure the DHT22 DATA pin is connected to GPIO 4 on the ESP32-C3, or update and rebuild the firmware if you need a different pin.
+<details>
+<summary>ESP32-C3 Supermini</summary>
 
-## Setup Instructions
+![esp32-c3 supermini pinout](./esp32c3-supermini-pinout.jpg)
+</details>
 
-1.
-2.
-3.
+<details>
+<summary>ESP32-C3 Seeed</summary>
 
-## Troubleshooting
-
-### Common Issues
-
--
-
-### Tips
-
--
+![esp32-c3 seeed pinout](./esp32c3-seeed-pinout.jpg)
+</details>

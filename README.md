@@ -1,6 +1,8 @@
 # ESP32 Temperature System
 Complete temperature monitoring system: ESP32 firmware, web-based flasher, and local backend infrastructure.
 
+See [hardware requirements](docs/hardware.md) for compatible ESP32 boards, DHT22 sensor, and wiring guide.
+
 ## Quick Start
 
 ### 1. Start Backend (InfluxDB + Grafana)
@@ -22,8 +24,6 @@ from(bucket: "sensors")
 ```
 
 ### 2. Flash ESP32 Device
-
-See [hardware requirements](docs/hardware.md) for compatible ESP32 boards, DHT22 sensor, and wiring guide.
 
 **[Firmware Flash Web Tool](https://jveldboom.github.io/esp32-temperature-system/)**
 
