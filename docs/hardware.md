@@ -25,7 +25,7 @@ I've had good luck getting the cheapest available option on Amazon.com for the D
 | DATA      | GPIO 4       | Firmware expects DHT22 DATA on GPIO 4 (`DHTPIN 4`) |
 | GND       | GND          |       |
 
-### Pinouts
+### Device Pinouts
 
 <details>
 <summary>ESP32-C3 Supermini</summary>
@@ -37,4 +37,10 @@ I've had good luck getting the cheapest available option on Amazon.com for the D
 <summary>ESP32-C3 Seeed</summary>
 
 ![esp32-c3 seeed pinout](./esp32c3-seeed-pinout.jpg)
+</details>
+
+<details>
+<summary>DHT22</summary>
+
+![dht22 pinout](./dth22-pinout.png)
 </details>
