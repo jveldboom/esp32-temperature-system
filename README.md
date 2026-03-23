@@ -1,6 +1,8 @@
 # ESP32 Temperature System
 Complete temperature monitoring system: ESP32 firmware, web-based flasher, and local backend infrastructure.
 
+![Grafana Dashboard](./docs/grafana-dashboard.png)
+
 See [hardware requirements](docs/hardware.md) for compatible ESP32 boards, DHT22 sensor, and wiring guide.
 
 ## Quick Start
@@ -9,12 +11,12 @@ See [hardware requirements](docs/hardware.md) for compatible ESP32 boards, DHT22
 Requires Docker Compose.
 
 ```bash
-make start-backend
+make backend-start
 ```
 
 Access services:
-- InfluxDB: http://localhost:8086
-- Grafana: http://localhost:3000 (admin/admin)
+- InfluxDB: http://localhost:8086 (admin/password123)
+- Grafana: http://localhost:3000 (admin/password123)
 
 Query all sensor data in InfluxDB Data Explorer:
 

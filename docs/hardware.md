@@ -6,7 +6,7 @@ For this project, you will need a compatible ESP32 board and the DHT22 temperatu
 | Board | Link | Notes |
 |-------|------|-------|
 | ESP32-C3 (Supermini) | [Amazon.com](https://www.amazon.com/dp/B0FR9369C3) ~$16 for 4 | - best low cost option<br />- includes header pins |
-| ESP32-C3 (Seeed Studio) | [Amazon.com](https://www.amazon.com/dp/B0DGX3LSC7) ~$20 for 3<br/>[Amazon.com](https://www.amazon.com/dp/B0DRNSV5CS) ~$11 w/ header pins | - better quality control |
+| ESP32-C3 (Seeed Studio) | [Amazon.com](https://www.amazon.com/dp/B0DGX3LSC7) ~$20 for 3<br/>[Amazon.com](https://www.amazon.com/dp/B0DRNSV5CS) ~$11 w/ header pins | - better quality control<br/>- includes wifi antenna |
 
 ## DHT22 Temperature/Humidity Sensor
 I've had good luck getting the cheapest available option on Amazon.com for the DHT22 sensors. You don't need to pay more for better quality.

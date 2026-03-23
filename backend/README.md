@@ -17,8 +17,8 @@ This setup uses default configurations and simple networking suitable for local 
    ```
 
 2. **Access the services:**
-   - **InfluxDB UI**: http://localhost:8086
-   - **Grafana**: http://localhost:3000 (username: `admin`, password: `admin`)
+   - **InfluxDB UI**: http://localhost:8086 (username: `admin`, password: `password123`)
+   - **Grafana**: http://localhost:3000 (username: `admin`, password: `password123`)
 
 That's it! InfluxDB will be automatically configured with default credentials suitable for local testing.
 
@@ -60,6 +60,7 @@ docker-compose logs -f
 
 # stop services
 docker-compose down
-# stop and remove all data
-docker-compose down -v
+
+# stop and delete all containers and volumes
+make backend-delete
 ```
