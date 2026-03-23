@@ -37,7 +37,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -99,7 +99,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_f\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n  |> yield(name: \"last\") ",
           "refId": "A"
@@ -111,7 +111,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -161,7 +161,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"humidity\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n  |> yield(name: \"last\")",
           "refId": "A"
@@ -173,7 +173,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -235,7 +235,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_index_f\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n  |> yield(name: \"last\")   ",
           "refId": "A"
@@ -260,7 +260,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -344,7 +344,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_f\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n    ",
           "refId": "A"
@@ -356,7 +356,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -441,7 +441,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"humidity\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n    ",
           "refId": "A"
@@ -453,7 +453,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -537,7 +537,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"heat_index_f\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n    ",
           "refId": "A"
@@ -562,7 +562,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "fieldConfig": {
         "defaults": {
@@ -792,7 +792,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "metrics = from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"dht22\")\n  |> filter(fn: (r) => r._field == \"rssi\" or r._field == \"uptime_s\" or r._field == \"free_heap\")\n  |> group(columns: [\"location\", \"_field\"])\n  |> last()\n  |> group()\n  |> pivot(rowKey: [\"location\", \"mac\", \"ip\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"location\", \"mac\", \"ip\", \"rssi\", \"uptime_s\", \"free_heap\"])\n\ntimestamps = from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"dht22\" and r._field == \"rssi\")\n  |> group(columns: [\"location\"])\n  |> last()\n  |> group()\n  |> map(fn: (r) => ({\n      location: r.location,\n      last_seen: string(v: r._time),\n      status: if (uint(v: now()) - uint(v: r._time)) < uint(v: 300000000000) then \"Online\" else \"Offline\"\n  }))\n  |> keep(columns: [\"location\", \"last_seen\", \"status\"])\n\njoin(tables: {metrics: metrics, timestamps: timestamps}, on: [\"location\"])",
           "refId": "A"
@@ -833,7 +833,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "ffej52t1t8idcc"
+        "uid": "InfluxDB"
       },
       "description": "Green: Above -50 dBm <br/>\nYellow:  Between -70 to -50 dBm <br/>\nRed: Below -70 dBm",
       "fieldConfig": {
@@ -924,7 +924,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "ffej52t1t8idcc"
+            "uid": "InfluxDB"
           },
           "query": "from(bucket: \"sensors\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"dht22\")\n  |> filter(fn: (r) => r[\"_field\"] == \"rssi\")\n  |> aggregateWindow(every: duration(v: \"${time}\"), fn: mean, createEmpty: false)\n    ",
           "refId": "A"
