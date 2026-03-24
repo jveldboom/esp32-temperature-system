@@ -17,10 +17,10 @@ This setup uses default configurations and simple networking suitable for local 
    ```
 
 2. **Access the services:**
-   - **InfluxDB UI**: http://localhost:8086 (username: `admin`, password: `password123`)
-   - **Grafana**: http://localhost:3000 (username: `admin`, password: `password123`)
+   - **InfluxDB UI**: http://localhost:8086
+   - **Grafana**: http://localhost:3000
 
-That's it! InfluxDB will be automatically configured with default credentials suitable for local testing.
+Credentials are configured via your environment, `.env`, or [Docker Compose](./backend/docker-compose.yaml)
 
 ## Configuration
 
@@ -39,7 +39,7 @@ You'll use these values in your ESP32 firmware configuration.
 
 Grafana automatically connects to InfluxDB on startup. To create your first dashboard:
 
-1. Log in at http://localhost:3000 (username: `admin`, password: `admin`)
+1. Log in at http://localhost:3000
 2. Click "+" → "Dashboard" → "Add visualization"
 3. Select "InfluxDB" as the data source
 4. Write a Flux query to fetch your sensor data

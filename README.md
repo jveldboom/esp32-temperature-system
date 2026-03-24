@@ -14,9 +14,9 @@ Requires Docker Compose.
 make backend-start
 ```
 
-Access services:
-- InfluxDB: http://localhost:8086 (credentials configured via your environment, `.env`, or Docker Compose)
-- Grafana: http://localhost:3000 (credentials configured via your environment, `.env`, or Docker Compose)
+Access services - credentials configured via your environment, `.env`, or [Docker Compose](./backend/docker-compose.yaml)
+- InfluxDB: http://localhost:8086
+- Grafana: http://localhost:3000
 
 Query all sensor data in InfluxDB Data Explorer:
 
@@ -42,4 +42,4 @@ from(bucket: "sensors")
 ## Contributing
 
 - Install the PlatformIO VS Code extension
-- Run frontend locally with `make start-frontend`
+- Run frontend locally with `make frontend-start`
