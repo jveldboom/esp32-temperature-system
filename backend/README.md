@@ -20,7 +20,7 @@ This setup uses default configurations and simple networking suitable for local 
    - **InfluxDB UI**: http://localhost:8086
    - **Grafana**: http://localhost:3000
 
-Credentials are configured via your environment, `.env`, or [Docker Compose](./backend/docker-compose.yaml)
+For this local setup, credentials are hardcoded in [Docker Compose](./docker-compose.yaml) using the development defaults listed below.
 
 ## Configuration
 
