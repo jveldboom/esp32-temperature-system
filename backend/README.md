@@ -13,9 +13,7 @@ This setup uses default configurations and simple networking suitable for local 
 
 1. **Start the services:**
    ```bash
-   docker-compose up -d
-
-   # Or from the project root
+   # from the project root
    make backend-start
    ```
 
@@ -64,11 +62,8 @@ Grafana is automatically provisioned with a default dashboard and InfluxDB datas
 ## Managing Docker Services
 
 ```bash
-# view logs
-docker-compose logs -f
-
-# stop services
-docker-compose down
+# stop all services
+make backend-stop
 
 # stop and delete all containers and volumes
 make backend-delete

@@ -4,7 +4,10 @@ frontend-start:
 	python3 -m http.server 8080
 
 backend-start:
-	cd backend && docker compose up
+	cd backend && docker compose up -d
+
+backend-stop:
+	cd backend && docker compose down
 
 backend-delete:
 	cd backend && docker compose down -v --remove-orphans
