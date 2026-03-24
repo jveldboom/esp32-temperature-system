@@ -13,53 +13,57 @@ This setup uses default configurations and simple networking suitable for local 
 
 1. **Start the services:**
    ```bash
-   docker-compose up -d
+   # from the project root
+   make backend-start
    ```
 
 2. **Access the services:**
    - **InfluxDB UI**: http://localhost:8086
    - **Grafana**: http://localhost:3000
 
-For this local setup, credentials are hardcoded in [Docker Compose](./docker-compose.yaml) using the development defaults listed below.
+The setup works out of the box with default credentials - no configuration required. If you'd like to use your own credentials, you can override them with a `.env` file (see [Custom Configuration](#custom-configuration) below).
 
 ## Configuration
 
-### InfluxDB
+### Default Credentials
 
-InfluxDB is automatically initialized with these defaults:
-- Organization: `home`
-- Bucket: `sensors`
-- Admin username: `admin`
-- Admin password: `password123`
-- Admin token: `my-dev-token`
+The following defaults are built into [docker-compose.yaml](./docker-compose.yaml) so the setup works without any changes:
 
-You'll use these values in your ESP32 firmware configuration.
+| Service  | Setting           | Default         | Required for ESP32 Setup |
+|----------|-------------------|-----------------|--------------------------|
+| InfluxDB | Organization      | `home`          | ✓                        |
+| InfluxDB | Bucket            | `sensors`       | ✓                        |
+| InfluxDB | Username          | `admin`         |                          |
+| InfluxDB | Password          | `password123`   |                          |
+| InfluxDB | Token             | `my-dev-token`  | ✓                        |
+| Grafana  | Username          | `admin`         |                          |
+| Grafana  | Password          | `password123`   |                          |
+
+> Values marked ✓ are required when flashing firmware to your ESP32 via the [web interface](https://jveldboom.github.io/esp32-temperature-system/).
+
+### Custom Configuration (Optional)
+
+To override any of the defaults, copy `.env.example` to `.env` and update the values:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your preferred credentials. Docker Compose will automatically pick up the file on next start.
 
 ### Grafana
 
-Grafana automatically connects to InfluxDB on startup. To create your first dashboard:
+Grafana is automatically provisioned with a default dashboard and InfluxDB datasource.
 
 1. Log in at http://localhost:3000
-2. Click "+" → "Dashboard" → "Add visualization"
-3. Select "InfluxDB" as the data source
-4. Write a Flux query to fetch your sensor data
+2. Click "Dashboard" → "ESP32 Temperature & Humidity" dashboard
 
-Example Flux query to get temperature data:
-```flux
-from(bucket: "sensors")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r["_measurement"] == "environment")
-  |> filter(fn: (r) => r["_field"] == "temperature")
-```
 
 ## Managing Docker Services
 
 ```bash
-# view logs
-docker-compose logs -f
-
-# stop services
-docker-compose down
+# stop all services
+make backend-stop
 
 # stop and delete all containers and volumes
 make backend-delete
