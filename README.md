@@ -15,8 +15,8 @@ make backend-start
 ```
 
 Access services:
-- InfluxDB: http://localhost:8086 (admin/password123)
-- Grafana: http://localhost:3000 (admin/password123)
+- InfluxDB: http://localhost:8086 (credentials configured via your environment, `.env`, or Docker Compose)
+- Grafana: http://localhost:3000 (credentials configured via your environment, `.env`, or Docker Compose)
 
 Query all sensor data in InfluxDB Data Explorer:
 

@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 13,
+  "id": null,
   "links": [],
   "panels": [
     {
@@ -254,7 +254,7 @@
       },
       "id": 6,
       "panels": [],
-      "title": "Overtime",
+      "title": "Over time",
       "type": "row"
     },
     {
@@ -1018,6 +1018,6 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "ESP32 Temperature & Humidity",
-  "uid": "e762269c-5250-43b9-a59c-758399dd9395",
+  "uid": "esp32-sensors",
   "version": 31
 }
