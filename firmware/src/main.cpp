@@ -4,69 +4,75 @@
 #include <InfluxDbClient.h>
 #include "config.h"
 
-// ----- DHT22 config -----
-#define DHTPIN  4
+#define DHTPIN 4
 #define DHTTYPE DHT22
 
-// ----- Timing config -----
-#define READING_INTERVAL_MS 60000  // 60 seconds between readings
+#define READING_INTERVAL_MS 60000
+#define WIFI_MAX_RECONNECT_ATTEMPTS 3
 
 DHT dht(DHTPIN, DHTTYPE);
 InfluxDBClient* client = nullptr;
 Point sensor("dht22");
+int wifiReconnectFailures = 0;
 
-void connectWifi() {
-  Serial.printf("Connecting to WiFi: %s\n", cfgWifiSsid.c_str());
+// Attempts to connect/reconnect to WiFi. Reboots after WIFI_MAX_RECONNECT_ATTEMPTS
+// consecutive failures to recover from states where the WiFi stack gets stuck.
+bool connectWifi() {
+  if (WiFi.status() == WL_CONNECTED) return true;
 
+  if (wifiReconnectFailures == 0) {
+    Serial.printf("Connecting to WiFi %s...\n", cfgWifiSsid.c_str());
+  } else {
+    Serial.printf("WiFi lost, reconnecting to %s...\n", cfgWifiSsid.c_str());
+  }
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-
   WiFi.begin(cfgWifiSsid.c_str(), cfgWifiPass.c_str());
 
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 40) {
+  // Poll for connection every 500ms, up to 20 seconds total
+  for (int i = 0; i < 40 && WiFi.status() != WL_CONNECTED; i++) {
     delay(500);
     Serial.print(".");
-    attempts++;
   }
-
   Serial.println();
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("Connected! IP: %s\n", WiFi.localIP().toString().c_str());
-  } else {
-    Serial.println("Failed to connect to WiFi!");
+    wifiReconnectFailures = 0;
+    return true;
   }
+
+  wifiReconnectFailures++;
+  Serial.printf("Reconnect failed (%d/%d)\n", wifiReconnectFailures, WIFI_MAX_RECONNECT_ATTEMPTS);
+  if (wifiReconnectFailures >= WIFI_MAX_RECONNECT_ATTEMPTS) {
+    Serial.println("Max reconnect attempts reached, rebooting...");
+    delay(1000);
+    ESP.restart();
+  }
+  return false;
 }
 
 void setup() {
   Serial.begin(115200);
   delay(100);
 
-  // Load or receive configuration
   if (!loadConfig()) {
     if (waitForConfig()) {
       saveConfig();
     } else {
-      Serial.println("ERROR: No configuration available!");
-      Serial.println("Device cannot operate without configuration.");
-      while (true) { delay(1000); } // Halt
+      Serial.println("ERROR: No configuration available. Device cannot operate.");
+      while (true) { delay(1000); }
     }
   }
 
-  // Initialize sensor
   dht.begin();
 
-  // Connect to WiFi
-  connectWifi();
-
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("ERROR: WiFi connection required!");
-    while (true) { delay(1000); } // Halt
+  while (!connectWifi()) {
+    Serial.println("Retrying WiFi connection...");
+    delay(5000);
   }
 
-  // Initialize InfluxDB client
   client = new InfluxDBClient(
     cfgInfluxUrl.c_str(),
     cfgInfluxOrg.c_str(),
@@ -74,12 +80,12 @@ void setup() {
     cfgInfluxToken.c_str()
   );
 
-  // Static tags applied to every data point
+  String localIp = WiFi.localIP().toString();
   sensor.addTag("mac",              WiFi.macAddress());
   sensor.addTag("chip_model",       ESP.getChipModel());
   sensor.addTag("firmware_version", FIRMWARE_VERSION);
   sensor.addTag("location",         cfgLocation.c_str());
-  sensor.addTag("ip",               WiFi.localIP().toString());
+  sensor.addTag("ip",               localIp);
 
   if (client->validateConnection()) {
     Serial.printf("Connected to InfluxDB: %s\n", client->getServerUrl().c_str());
@@ -91,49 +97,42 @@ void setup() {
 }
 
 void loop() {
+  if (!connectWifi()) {
+    delay(READING_INTERVAL_MS);
+    return;
+  }
+
   float humidity = dht.readHumidity();
   float tempC    = dht.readTemperature();
   float tempF    = dht.readTemperature(true);
 
   if (isnan(humidity) || isnan(tempC) || isnan(tempF)) {
     Serial.println("ERROR: Failed to read from sensor!");
-    delay(10000);  // Retry after 10 seconds on failure
+    delay(10000);
     return;
   }
 
-  float heatIndexC = dht.computeHeatIndex(tempC, humidity, false);
-  float heatIndexF = dht.computeHeatIndex(tempF, humidity, true);
+  int   rssi     = WiFi.RSSI();
+  uint32_t freeHeap = ESP.getFreeHeap();
 
   sensor.clearFields();
-
-  // Sensor readings
   sensor.addField("humidity",      humidity);
   sensor.addField("temperature_c", tempC);
   sensor.addField("temperature_f", tempF);
-  sensor.addField("heat_index_c",  heatIndexC);
-  sensor.addField("heat_index_f",  heatIndexF);
-
-  // WiFi stats
-  sensor.addField("rssi",    WiFi.RSSI());
-  sensor.addField("channel", WiFi.channel());
-
-  // Device health
-  sensor.addField("uptime_s",  millis() / 1000);
-  sensor.addField("free_heap", ESP.getFreeHeap());
+  sensor.addField("heat_index_c",  dht.computeHeatIndex(tempC, humidity, false));
+  sensor.addField("heat_index_f",  dht.computeHeatIndex(tempF, humidity, true));
+  sensor.addField("rssi",          rssi);
+  sensor.addField("channel",       WiFi.channel());
+  sensor.addField("uptime_s",      millis() / 1000);
+  sensor.addField("free_heap",     freeHeap);
 
   Serial.printf("Humidity: %.2f%% Temp: %.2f°C RSSI: %d dBm Heap: %u bytes → ",
-              humidity, tempC, WiFi.RSSI(), ESP.getFreeHeap());
+                humidity, tempC, rssi, freeHeap);
 
   if (!client->writePoint(sensor)) {
     Serial.printf("Write failed: %s\n", client->getLastErrorMessage().c_str());
   } else {
     Serial.println("Written to InfluxDB ✓");
-  }
-
-  // Reconnect WiFi if dropped
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi lost, reconnecting...");
-    connectWifi();
   }
 
   delay(READING_INTERVAL_MS);

@@ -2,6 +2,16 @@
   "name": "ESP32 Firmware Manifest",
   "releases": [
     {
+      "version": "0.1.0",
+      "notes": "Fix wifi reconnect bug",
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        { "path": "releases/0.1.0/bootloader.bin", "offset": 0 },
+        { "path": "releases/0.1.0/partitions.bin", "offset": 32768 },
+        { "path": "releases/0.1.0/firmware.bin", "offset": 65536 }
+      ]
+    },
+    {
       "version": "0.0.1",
       "notes": "Initial pre-release",
       "chipFamily": "ESP32-C3",
