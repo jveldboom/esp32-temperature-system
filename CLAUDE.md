@@ -90,7 +90,7 @@ The firmware receives configuration via serial during the flashing process from 
 ### Important Notes
 - Reads sensor data every 60 seconds
 - Includes WiFi reconnection logic
-- Reports device health metrics (RSSI, uptime, free heap)
+- Reports device health metrics (wifi_rssi, wifi_channel, wifi_reconnect_count, uptime_s, heap_free, heap_min_free, heap_fragmentation)
 - Uses static tags for device identification
 
 ---

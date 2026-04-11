@@ -112,22 +112,29 @@ void loop() {
     return;
   }
 
-  int   rssi     = WiFi.RSSI();
-  uint32_t freeHeap = ESP.getFreeHeap();
+  int      rssi         = WiFi.RSSI();
+  uint32_t heapFree     = ESP.getFreeHeap();
+  uint32_t heapMinFree  = ESP.getMinFreeHeap();
+  uint32_t heapMaxAlloc = ESP.getMaxAllocHeap();
+  // Percentage of free heap that is fragmented (not available as a single block)
+  float    heapFrag     = (heapFree > 0) ? (1.0f - (float)heapMaxAlloc / (float)heapFree) * 100.0f : 0.0f;
 
   sensor.clearFields();
-  sensor.addField("humidity",      humidity);
-  sensor.addField("temperature_c", tempC);
-  sensor.addField("temperature_f", tempF);
-  sensor.addField("heat_index_c",  dht.computeHeatIndex(tempC, humidity, false));
-  sensor.addField("heat_index_f",  dht.computeHeatIndex(tempF, humidity, true));
-  sensor.addField("rssi",          rssi);
-  sensor.addField("channel",       WiFi.channel());
-  sensor.addField("uptime_s",      millis() / 1000);
-  sensor.addField("free_heap",     freeHeap);
+  sensor.addField("heap_fragmentation",  heapFrag);
+  sensor.addField("heap_free",           heapFree);
+  sensor.addField("heap_min_free",       heapMinFree);
+  sensor.addField("heat_index_c",        dht.computeHeatIndex(tempC, humidity, false));
+  sensor.addField("heat_index_f",        dht.computeHeatIndex(tempF, humidity, true));
+  sensor.addField("humidity",            humidity);
+  sensor.addField("temperature_c",       tempC);
+  sensor.addField("temperature_f",       tempF);
+  sensor.addField("uptime_s",            millis() / 1000);
+  sensor.addField("wifi_channel",        WiFi.channel());
+  sensor.addField("wifi_reconnect_count", wifiReconnectFailures);
+  sensor.addField("wifi_rssi",           rssi);
 
-  Serial.printf("Humidity: %.2f%% Temp: %.2f°C RSSI: %d dBm Heap: %u bytes → ",
-                humidity, tempC, rssi, freeHeap);
+  Serial.printf("Humidity: %.2f%% Temp: %.2f°C RSSI: %d dBm Heap: %u bytes Frag: %.1f%% → ",
+                humidity, tempC, rssi, heapFree, heapFrag);
 
   if (!client->writePoint(sensor)) {
     Serial.printf("Write failed: %s\n", client->getLastErrorMessage().c_str());
