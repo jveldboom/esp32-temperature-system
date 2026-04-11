@@ -21,7 +21,7 @@ fi
 # Download each file
 echo "$FILES" | while read -r version filename; do
   mkdir -p "releases/${version}"
-  if [ -f "releases/${version}/${filename}" ]; then
+  if [ -f "releases/${version}/${filename}" ] && [ -s "releases/${version}/${filename}" ]; then
     echo "  ${filename} (${version}) already exists, skipping..."
     continue
   fi
