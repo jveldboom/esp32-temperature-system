@@ -113,7 +113,7 @@ void loop() {
   }
 
   int   rssi     = WiFi.RSSI();
-  uint  freeHeap = ESP.getFreeHeap();
+  uint32_t freeHeap = ESP.getFreeHeap();
 
   sensor.clearFields();
   sensor.addField("humidity",      humidity);
