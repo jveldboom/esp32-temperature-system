@@ -11,7 +11,7 @@
 #define WIFI_MAX_RECONNECT_ATTEMPTS 3
 
 DHT dht(DHTPIN, DHTTYPE);
-InfluxDBClient client;
+InfluxDBClient* client = nullptr;
 Point sensor("dht22");
 int wifiReconnectFailures = 0;
 
@@ -73,7 +73,7 @@ void setup() {
     delay(5000);
   }
 
-  client = InfluxDBClient(
+  client = new InfluxDBClient(
     cfgInfluxUrl.c_str(),
     cfgInfluxOrg.c_str(),
     cfgInfluxBucket.c_str(),
@@ -87,10 +87,10 @@ void setup() {
   sensor.addTag("location",         cfgLocation.c_str());
   sensor.addTag("ip",               localIp);
 
-  if (client.validateConnection()) {
-    Serial.printf("Connected to InfluxDB: %s\n", client.getServerUrl().c_str());
+  if (client->validateConnection()) {
+    Serial.printf("Connected to InfluxDB: %s\n", client->getServerUrl().c_str());
   } else {
-    Serial.printf("InfluxDB connection failed: %s\n", client.getLastErrorMessage().c_str());
+    Serial.printf("InfluxDB connection failed: %s\n", client->getLastErrorMessage().c_str());
   }
 
   Serial.println("\nSetup complete! Starting sensor loop...");
@@ -129,8 +129,8 @@ void loop() {
   Serial.printf("Humidity: %.2f%% Temp: %.2f°C RSSI: %d dBm Heap: %u bytes → ",
                 humidity, tempC, rssi, freeHeap);
 
-  if (!client.writePoint(sensor)) {
-    Serial.printf("Write failed: %s\n", client.getLastErrorMessage().c_str());
+  if (!client->writePoint(sensor)) {
+    Serial.printf("Write failed: %s\n", client->getLastErrorMessage().c_str());
   } else {
     Serial.println("Written to InfluxDB ✓");
   }
