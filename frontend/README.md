@@ -2,6 +2,23 @@
 
 Web-based tool for flashing firmware, configuring devices, and monitoring serial output from ESP32 devices.
 
+## Running Locally
+
+Start the dev server from the repo root (WebSerial requires Chrome or Edge — Firefox is not supported):
+
+```bash
+make frontend-start
+```
+
+Then open http://localhost:8080/frontend in Chrome or Edge.
+
+## Making Changes
+
+- **UI / layout**: Edit `index.html` (HTML structure at the top, CSS in `<style>`, JavaScript in the `<script type="module">` block at the bottom)
+- **Styles**: Edit `common.css` for shared styles; inline `<style>` in `index.html` for tab-specific styles
+- **Firmware versions**: Edit `manifest.json` (see [Adding a New Release](#adding-a-new-release) below)
+- **No build step is required** — save and reload the browser
+
 ## Firmware Releases
 
 Firmware binaries are stored in `releases/<version>/` and are gitignored. They must be downloaded before use.
@@ -41,20 +58,6 @@ Then open `index.html` in Chrome or Edge (WebSerial API required).
 
 1. Build firmware and publish a GitHub release with the binary assets
 2. Add a new entry to `manifest.json`:
-
-```json
-{
-  "version": "0.1.0",
-  "notes": "Description of changes",
-  "chipFamily": "ESP32-C3",
-  "parts": [
-    { "path": "releases/0.1.0/bootloader.bin", "offset": 0 },
-    { "path": "releases/0.1.0/partitions.bin", "offset": 32768 },
-    { "path": "releases/0.1.0/firmware.bin", "offset": 65536 }
-  ]
-}
-```
-
 3. Run `./download-releases.sh` to fetch the new binaries locally
 
 ### GitHub Pages Deployment
