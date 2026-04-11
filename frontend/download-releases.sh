@@ -21,6 +21,10 @@ fi
 # Download each file
 echo "$FILES" | while read -r version filename; do
   mkdir -p "releases/${version}"
+  if [ -f "releases/${version}/${filename}" ]; then
+    echo "  ${filename} (${version}) already exists, skipping..."
+    continue
+  fi
   echo "  ${filename} (${version})..."
   curl --fail --silent --show-error --location \
     -o "releases/${version}/${filename}" \
