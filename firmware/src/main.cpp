@@ -20,7 +20,11 @@ int wifiReconnectFailures = 0;
 bool connectWifi() {
   if (WiFi.status() == WL_CONNECTED) return true;
 
-  Serial.printf("WiFi lost, reconnecting to %s...\n", cfgWifiSsid.c_str());
+  if (wifiReconnectFailures == 0) {
+    Serial.printf("Connecting to WiFi %s...\n", cfgWifiSsid.c_str());
+  } else {
+    Serial.printf("WiFi lost, reconnecting to %s...\n", cfgWifiSsid.c_str());
+  }
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
@@ -64,9 +68,9 @@ void setup() {
 
   dht.begin();
 
-  if (!connectWifi()) {
-    Serial.println("ERROR: WiFi connection required!");
-    while (true) { delay(1000); }
+  while (!connectWifi()) {
+    Serial.println("Retrying WiFi connection...");
+    delay(5000);
   }
 
   client = InfluxDBClient(
