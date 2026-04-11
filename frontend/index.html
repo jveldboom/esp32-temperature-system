@@ -107,16 +107,6 @@
 
     <pre id="output"></pre>
 
-    <div class="input-group">
-      <input type="text" id="send-input" placeholder="Type command and press Enter..." disabled>
-      <select id="line-ending" disabled>
-        <option value="\n">LF</option>
-        <option value="\r\n" selected>CR+LF</option>
-        <option value="\r">CR</option>
-        <option value="">None</option>
-      </select>
-      <button id="send-btn" disabled>Send</button>
-    </div>
   </div>
 
   <script type="module">
@@ -446,10 +436,6 @@
     const disconnectBtn = document.getElementById('disconnect-btn');
     const resetBtn = document.getElementById('reset-btn');
     const clearBtn = document.getElementById('clear-btn');
-    const sendInput = document.getElementById('send-input');
-    const sendBtn = document.getElementById('send-btn');
-    const lineEndingSelect = document.getElementById('line-ending');
-
     const BAUD_RATE = 115200; // Matches firmware Serial.begin(115200)
 
     let port = null;
@@ -478,9 +464,6 @@
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
         resetBtn.disabled = false;
-        sendInput.disabled = false;
-        sendBtn.disabled = false;
-        lineEndingSelect.disabled = false;
 
         // Set up writer
         writer = port.writable.getWriter();
@@ -536,9 +519,6 @@
       connectBtn.disabled = false;
       disconnectBtn.disabled = true;
       resetBtn.disabled = true;
-      sendInput.disabled = true;
-      sendBtn.disabled = true;
-      lineEndingSelect.disabled = true;
     });
 
     resetBtn.addEventListener('click', async () => {
@@ -562,30 +542,6 @@
 
     clearBtn.addEventListener('click', () => {
       outputEl.textContent = '';
-    });
-
-    async function sendCommand() {
-      if (!writer || !sendInput.value) return;
-
-      const text = sendInput.value;
-      const ending = lineEndingSelect.value
-        .replace('\\r\\n', '\r\n')
-        .replace('\\n', '\n')
-        .replace('\\r', '\r');
-
-      try {
-        const encoder = new TextEncoder();
-        await writer.write(encoder.encode(text + ending));
-        logMonitor('> ' + text + '\n');
-        sendInput.value = '';
-      } catch (error) {
-        logMonitor('[Send error: ' + error.message + ']\n');
-      }
-    }
-
-    sendBtn.addEventListener('click', sendCommand);
-    sendInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendCommand();
     });
 
   </script>
