@@ -87,7 +87,6 @@ void setup() {
   sensor.addTag("firmware_version", FIRMWARE_VERSION);
   sensor.addTag("location",         cfgLocation.c_str());
   sensor.addTag("ip",               localIp);
-  sensor.addTag("reset_reason",     String(esp_reset_reason()));
 
   if (client->validateConnection()) {
     Serial.printf("Connected to InfluxDB: %s\n", client->getServerUrl().c_str());
@@ -131,6 +130,7 @@ void loop() {
   sensor.addField("temperature_c",       tempC);
   sensor.addField("temperature_f",       tempF);
   sensor.addField("uptime_s",            millis() / 1000);
+  sensor.addField("reset_reason",        (int)esp_reset_reason());
   sensor.addField("wifi_channel",        WiFi.channel());
   sensor.addField("wifi_rssi",           rssi);
 
