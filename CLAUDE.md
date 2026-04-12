@@ -90,7 +90,8 @@ The firmware receives configuration via serial during the flashing process from 
 ### Important Notes
 - Reads sensor data every 60 seconds
 - Includes WiFi reconnection logic
-- Reports device health metrics (RSSI, uptime, free heap)
+- Reports device health metrics (wifi_rssi, wifi_channel, uptime_s, heap_free, heap_min_free, heap_fragmentation)
+- Reports `reset_reason` field (raw `esp_reset_reason()` int): 1=power_on, 2=external, 3=software, 4=panic, 5=watchdog_int, 6=watchdog_task, 7=watchdog, 8=deep_sleep, 9=brownout, 10=sdio
 - Uses static tags for device identification
 
 ---
