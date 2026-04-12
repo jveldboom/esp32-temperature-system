@@ -56,6 +56,7 @@ bool connectWifi() {
 void setup() {
   Serial.begin(115200);
   delay(100);
+  Serial.printf("Restart reason: %d\n", esp_reset_reason());
 
   if (!loadConfig()) {
     if (waitForConfig()) {
@@ -86,6 +87,7 @@ void setup() {
   sensor.addTag("firmware_version", FIRMWARE_VERSION);
   sensor.addTag("location",         cfgLocation.c_str());
   sensor.addTag("ip",               localIp);
+  sensor.addTag("reset_reason",     String(esp_reset_reason()));
 
   if (client->validateConnection()) {
     Serial.printf("Connected to InfluxDB: %s\n", client->getServerUrl().c_str());
@@ -130,7 +132,6 @@ void loop() {
   sensor.addField("temperature_f",       tempF);
   sensor.addField("uptime_s",            millis() / 1000);
   sensor.addField("wifi_channel",        WiFi.channel());
-  sensor.addField("wifi_reconnect_count", wifiReconnectFailures);
   sensor.addField("wifi_rssi",           rssi);
 
   Serial.printf("Humidity: %.2f%% Temp: %.2f°C RSSI: %d dBm Heap: %u bytes Frag: %.1f%% → ",
